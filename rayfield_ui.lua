@@ -1,4 +1,4 @@
-local RayfieldLibrary = loadstring(game:HttpGet('sirius.menu/rayfield'))()
+local RayfieldLibrary = loadstring(game:HttpGet('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua'))()
 local player = game.Players.LocalPlayer
 
 local Window = RayfieldLibrary:CreateWindow({
