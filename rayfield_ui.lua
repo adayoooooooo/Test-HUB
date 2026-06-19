@@ -2,7 +2,7 @@
 local RayfieldLibrary = nil
 for i = 1, 5 do
     local success, res = pcall(function()
-        return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+        return loadstring(game:HttpGet('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua'))()
     end)
     if success and res then
         RayfieldLibrary = res
