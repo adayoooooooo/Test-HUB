@@ -1,4 +1,4 @@
-local OrionLibrary = loadstring(game:HttpGet(('https://githubusercontent.com')))()
+local OrionLibrary = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/refs/heads/main/source')))()
 local player = game.Players.LocalPlayer
 
 local Window = OrionLibrary:MakeWindow({
