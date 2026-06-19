@@ -1,4 +1,4 @@
--- [[ 🛑 旧オブジェクトのクリーンアップ ]]
+-- [[ 🛑 旧オブジェクトのクリーンアップ ]]a
 if game:GetService("CoreGui"):FindFirstChild("UI_Launcher") then
     game:GetService("CoreGui").UI_Launcher:Destroy()
 end
