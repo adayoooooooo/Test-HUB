@@ -1,22 +1,4 @@
--- [[ 🛑 Rayfieldライブラリの安全ロード（最大5回リトライ） ]]
-local RayfieldLibrary = nil
-for i = 1, 5 do
-    local success, res = pcall(function()
-        return loadstring(game:HttpGet('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua'))()
-    end)
-    if success and res then
-        RayfieldLibrary = res
-        break
-    end
-    task.wait(0.5)
-end
-
--- 万が一5回失敗した場合は警告を出して処理を止める
-if not RayfieldLibrary then
-    error("KTM HUB: Rayfield UI Libraryのダウンロードに失敗しました。時間をおいて再試行してください。")
-    return
-end
-
+local RayfieldLibrary = loadstring(game:HttpGet('sirius.menu/rayfield'))()
 local player = game.Players.LocalPlayer
 
 local Window = RayfieldLibrary:CreateWindow({
@@ -39,7 +21,6 @@ PlayerTab:CreateToggle({
     Callback = function(Value) _G.WalkspeedOverride = Value end
 })
 
--- 🔒 修正: 余計な文字列（campaign）を完全に排除した綺麗なスライダー構造
 PlayerTab:CreateSlider({
     Name = "Speed Multiplier",
     Info = "Walkspeed multiplier factor",
