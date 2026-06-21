@@ -90,16 +90,22 @@ end
 local PlayerDropdown = TeleportTab:AddDropdown({
     Name = "Select Player",
     Default = "None",
-    Options = GetPlayerList(),
+    Options = currentDisplayList,
     Callback = function(Value)
-        SelectedPlayerName = Value
+        -- 選択された表記から、内部処理用の正確なユーザー名を取得
+        if currentNameMap[Value] then
+            SelectedPlayerName = currentNameMap[Value]
+        else
+            SelectedPlayerName = ""
+        end
     end
 })
 
--- ドロップダウン自動更新
+-- ドロップダウン自動更新関数
 local function RefreshDropdown()
     if PlayerDropdown then
-        PlayerDropdown:Refresh(GetPlayerList(), true)
+        currentDisplayList, currentNameMap = GetPlayerDropdownData()
+        PlayerDropdown:Refresh(currentDisplayList, true)
     end
 end
 Players.PlayerAdded:Connect(RefreshDropdown)
