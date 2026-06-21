@@ -1,6 +1,13 @@
 local RayfieldLibrary = loadstring(game:HttpGet('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua'))()
 local player = game.Players.LocalPlayer
 
+Rayfield:Notify({
+   Title = "KTM_HUBv0.01rayfield Loaded!",
+   Content = "RayfieldUI",
+   Duration = 6.5,
+   Image = 4483362458,
+})
+
 local Window = RayfieldLibrary:CreateWindow({
     Name = "KTM_HUB (FTAP)",
     LoadingTitle = "KTM_HUB Loading...",
