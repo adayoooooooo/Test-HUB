@@ -1,5 +1,6 @@
 local OrionLibrary = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/refs/heads/main/source')))()
-local player = game.Players.LocalPlayer
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 
 local Window = OrionLibrary:MakeWindow({
     Name = "KTM_HUB (FTAP)",
@@ -8,14 +9,23 @@ local Window = OrionLibrary:MakeWindow({
     ConfigFolder = "KTM_Hub"
 })
 
+local SelectedPlayerName = ""
+
+-- --- タブ作成 ---
+-- OrionUIの仕様バグ対策: 数字IDではなくLucideアイコン名("user", "locate")を指定して確実に表示させます。
 local PlayerTab = Window:MakeTab({
     Name = "Player",
-    Icon = "rbxassetid://13585613884",
+    Icon = "user", -- もし数字IDを使いたい場合は "rbxassetid://13585613884" と書いてみてください
     PremiumOnly = false
 })
+
 local TeleportTab = Window:MakeTab({
-        icon = rbxassetid//4562931890
-)} 
+    Name = "Teleport",
+    Icon = "locate", -- もし数字IDを使いたい場合は "rbxassetid://4562931890" と書いてみてください
+    PremiumOnly = false
+}) 
+
+-- --- Player タブの要素 ---
 PlayerTab:AddToggle({
     Name = "WalkspeedOverride",
     Default = false,
@@ -61,6 +71,52 @@ PlayerTab:AddToggle({
             player.CameraMode = Enum.CameraMode.Classic
             player.CameraMaxZoomDistance = 12
             player.CameraMinZoomDistance = 0.5
+        end
+    end
+})
+
+-- --- Teleport タブの要素 ---
+local function GetPlayerList()
+    local list = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= player then
+            table.insert(list, p.Name)
+        end
+    end
+    return list
+end
+
+-- プレイヤー選択ドロップダウン
+local PlayerDropdown = TeleportTab:AddDropdown({
+    Name = "Select Player",
+    Default = "None",
+    Options = GetPlayerList(),
+    Callback = function(Value)
+        SelectedPlayerName = Value
+    end
+})
+
+-- ドロップダウン自動更新
+local function RefreshDropdown()
+    if PlayerDropdown then
+        PlayerDropdown:Refresh(GetPlayerList(), true)
+    end
+end
+Players.PlayerAdded:Connect(RefreshDropdown)
+Players.PlayerRemoving:Connect(RefreshDropdown)
+
+-- テレポートボタン（背後にテレポート）
+TeleportTab:AddButton({
+    Name = "Teleport Behind Player",
+    Callback = function()
+        if SelectedPlayerName ~= "" and SelectedPlayerName ~= "None" then
+            local targetPlayer = Players:FindFirstChild(SelectedPlayerName)
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local targetHRP = targetPlayer.Character.HumanoidRootPart
+                    player.Character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 3)
+                end
+            end
         end
     end
 })
