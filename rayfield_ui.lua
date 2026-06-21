@@ -73,3 +73,17 @@ PlayerTab:CreateToggle({
         end
     end
 })
+
+TeleportTab:CreateToggle({
+    Name = "Enable TPS (Max 500 Studs)", 
+    CurrentValue = false, 
+    Flag = "TPSToggleFlag",
+    Callback = function(Value) 
+        _G.TPSToggle = Value 
+        if not Value and player then
+            player.CameraMode = Enum.CameraMode.Classic
+            player.CameraMaxZoomDistance = 12
+            player.CameraMinZoomDistance = 0.5
+        end
+    end
+})
