@@ -76,15 +76,23 @@ PlayerTab:AddToggle({
 })
 
 -- --- Teleport タブの要素 ---
-local function GetPlayerList()
-    local list = {}
+-- 「表示名 (@ユーザー名)」のリストと、そこからユーザー名を逆引きするテーブルを作成
+local function GetPlayerDropdownData()
+    local displayList = {}
+    local nameMap = {} -- 表示名からユーザー名を検索するためのマップ
+    
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= player then
-            table.insert(list, p.Name)
+            -- 例: "ひろし (@Hiroshi_Roblox)"
+            local formattedName = p.DisplayName .. " (@" .. p.Name .. ")"
+            table.insert(displayList, formattedName)
+            nameMap[formattedName] = p.Name
         end
     end
-    return list
+    return displayList, nameMap
 end
+
+local currentDisplayList, currentNameMap = GetPlayerDropdownData()
 
 -- プレイヤー選択ドロップダウン
 local PlayerDropdown = TeleportTab:AddDropdown({
@@ -108,6 +116,7 @@ local function RefreshDropdown()
         PlayerDropdown:Refresh(currentDisplayList, true)
     end
 end
+
 Players.PlayerAdded:Connect(RefreshDropdown)
 Players.PlayerRemoving:Connect(RefreshDropdown)
 
