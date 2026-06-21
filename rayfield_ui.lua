@@ -77,7 +77,7 @@ PlayerTab:CreateToggle({
 TeleportTab:CreateToggle({
     Name = "Enable TPS (Max 500 Studs)", 
     CurrentValue = false, 
-    Flag = "TPSToggleFlag",
+    Flag = "Test",
     Callback = function(Value) 
         _G.TPSToggle = Value 
         if not Value and player then
