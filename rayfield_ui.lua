@@ -1,13 +1,6 @@
 local RayfieldLibrary = loadstring(game:HttpGet('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua'))()
 local player = game.Players.LocalPlayer
 
-Rayfield:Notify({
-   Title = "KTM_HUBv0.01rayfield Loaded!",
-   Content = "RayfieldUI",
-   Duration = 6.5,
-   Image = 4483362458,
-})
-
 local Window = RayfieldLibrary:CreateWindow({
     Name = "KTM_HUB (FTAP)",
     LoadingTitle = "KTM_HUB Loading...",
@@ -18,8 +11,12 @@ local Window = RayfieldLibrary:CreateWindow({
         FileName = "Config"
     }
 })
-local PlayerTab = Window:CreateTab("Player", 13585613929)
-local TeleportTab = Window:CreateTab("Player", "4562931890)
+
+-- タブの作成
+local PlayerTab = Window:CreateTab("Player", 13585613884)
+local TeleportTab = Window:CreateTab("Teleport", 4562931890) 
+
+-- --- PlayerTab の要素 ---
 PlayerTab:CreateToggle({
     Name = "WalkspeedOverride",
     CurrentValue = false,
@@ -81,6 +78,7 @@ PlayerTab:CreateToggle({
     end
 })
 
+-- --- TeleportTab の要素 ---
 TeleportTab:CreateToggle({
     Name = "Enable TPS (Max 500 Studs)", 
     CurrentValue = false, 
