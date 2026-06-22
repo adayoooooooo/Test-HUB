@@ -25,7 +25,7 @@ local TeleportTab = Window:MakeTab({
     PremiumOnly = false
 }) 
 
-local keybindsTab = flingThingsWindow:MakeTab({
+local keybindsTab = Window:MakeTab({
     Name = "Keybinds",
     Icon = "rbxassetid://11710306232",
     PremiumOnly = false
@@ -142,4 +142,9 @@ TeleportTab:AddButton({
     end
 })
 
+keybindsTab:AddToggle({
+    Name = "Infinite Jump",
+    Default = false,
+    Callback = function(Value) _G.InfiniteJump = Value end
+})
 OrionLibrary:Init()
