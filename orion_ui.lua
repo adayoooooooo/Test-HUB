@@ -9,13 +9,14 @@ local Window = OrionLibrary:MakeWindow({
     ConfigFolder = "KTM_Hub"
 })
 
+-- 選択されたプレイヤーの「正確なユーザー名」を保持する変数
 local SelectedPlayerName = ""
 
 -- --- タブ作成 ---
--- OrionUIの仕様バグ対策: 数字IDではなくLucideアイコン名("user", "locate")を指定して確実に表示させます。
+-- Orionでアイコンを表示させるため、Iconパラメータに直接アセットURLを指定
 local PlayerTab = Window:MakeTab({
     Name = "Player",
-    Icon = "rbxassetid://16630859858",
+    Icon = "rbxassetid://13585613884", 
     PremiumOnly = false
 })
 
@@ -24,12 +25,6 @@ local TeleportTab = Window:MakeTab({
     Icon = "rbxassetid://7733992829",
     PremiumOnly = false
 }) 
-
-local keybindsTab = Window:MakeTab({
-    Name = "Keybinds",
-    Icon = "rbxassetid://11710306232",
-    PremiumOnly = false
-})
 
 -- --- Player タブの要素 ---
 PlayerTab:AddToggle({
@@ -81,7 +76,8 @@ PlayerTab:AddToggle({
     end
 })
 
--- --- Teleport タブの要素 ---
+-- --- Teleport タブの要素（プレイヤー名変換処理付き） ---
+
 -- 「表示名 (@ユーザー名)」のリストと、そこからユーザー名を逆引きするテーブルを作成
 local function GetPlayerDropdownData()
     local displayList = {}
@@ -122,7 +118,6 @@ local function RefreshDropdown()
         PlayerDropdown:Refresh(currentDisplayList, true)
     end
 end
-
 Players.PlayerAdded:Connect(RefreshDropdown)
 Players.PlayerRemoving:Connect(RefreshDropdown)
 
@@ -130,7 +125,7 @@ Players.PlayerRemoving:Connect(RefreshDropdown)
 TeleportTab:AddButton({
     Name = "Teleport Behind Player",
     Callback = function()
-        if SelectedPlayerName ~= "" and SelectedPlayerName ~= "None" then
+        if SelectedPlayerName ~= "" then
             local targetPlayer = Players:FindFirstChild(SelectedPlayerName)
             if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -142,9 +137,4 @@ TeleportTab:AddButton({
     end
 })
 
-keybindsTab:AddToggle({
-    Name = "Infinite Jump",
-    Default = false,
-    Callback = function(Value) _G.InfiniteJump = Value end
-})
 OrionLibrary:Init()
