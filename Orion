@@ -6,334 +6,137 @@ local Mouse = LocalPlayer:GetMouse()
 local HttpService = game:GetService("HttpService")
 
 local OrionLib = {
-    Flags = {},
-    ThemeObjects = {},
-    Connections = {},
-    Themes = {
-        Default = {
-            Main = Color3.fromRGB(25, 25, 25),
-            Second = Color3.fromRGB(32, 32, 32),
-            Stroke = Color3.fromRGB(40, 40, 40),
-            Divider = Color3.fromRGB(45, 45, 45),
-            Text = Color3.fromRGB(240, 240, 240),
-            TextDark = Color3.fromRGB(145, 145, 145),
-            Accent = Color3.fromRGB(255, 170, 0) -- Orionお馴染みのカラー
-        }
-    },
-    SelectedTheme = "Default",
-    Folder = nil,
-    SaveCfg = false
+	Elements = {},
+	ThemeObjects = {},
+	Connections = {},
+	Flags = {},
+	Themes = {
+		Default = {
+			Main = Color3.fromRGB(25, 25, 25),
+			Second = Color3.fromRGB(32, 32, 32),
+			Stroke = Color3.fromRGB(60, 60, 60),
+			Divider = Color3.fromRGB(60, 60, 60),
+			Text = Color3.fromRGB(240, 240, 240),
+			TextDark = Color3.fromRGB(150, 150, 150)
+		}
+	},
+	SelectedTheme = "Default",
+	Folder = nil,
+	SaveCfg = false
 }
 
--- Orion X から移植: テーマ保存管理
-local THEME_FOLDER = "BlizTOrionTheme"
-local THEME_FILE_PATH = THEME_FOLDER .. "/" .. game.GameId .. ".txt"
-local LoadedThemeFile = false
-local ThemeColorsToSave = {}
+--Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
+local Icons = {}
 
-if not isfolder(THEME_FOLDER) then makefolder(THEME_FOLDER) end
+local Success, Response = pcall(function()
+	Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
+end)
 
--- Orion X から移植: タブ外部切り替え用
-local Tabs = {}
+if not Success then
+	warn("\nOrion Library - Failed to load Feather Icons. Error code: " .. Response .. "\n")
+end	
 
--- GUI初期化 (Orion本来の構成)
+local function GetIcon(IconName)
+	if Icons[IconName] ~= nil then
+		return Icons[IconName]
+	else
+		return nil
+	end
+end   
+
 local Orion = Instance.new("ScreenGui")
 Orion.Name = "Orion"
-if syn then syn.protect_gui(Orion) Orion.Parent = game.CoreGui
-else Orion.Parent = gethui() or game.CoreGui end
+if syn then
+	syn.protect_gui(Orion)
+	Orion.Parent = game.CoreGui
+else
+	Orion.Parent = gethui() or game.CoreGui
+end
 
--- 重複消去
-for _, Interface in ipairs((gethui() or game.CoreGui):GetChildren()) do
-    if Interface.Name == Orion.Name and Interface ~= Orion then Interface:Destroy() end
+if gethui then
+	for _, Interface in ipairs(gethui():GetChildren()) do
+		if Interface.Name == Orion.Name and Interface ~= Orion then
+			Interface:Destroy()
+		end
+	end
+else
+	for _, Interface in ipairs(game.CoreGui:GetChildren()) do
+		if Interface.Name == Orion.Name and Interface ~= Orion then
+			Interface:Destroy()
+		end
+	end
 end
 
 function OrionLib:IsRunning()
-    return Orion.Parent ~= nil
+	if gethui then
+		return Orion.Parent == gethui()
+	else
+		return Orion.Parent == game:GetService("CoreGui")
+	end
+
 end
 
 local function AddConnection(Signal, Function)
-    if not OrionLib:IsRunning() then return end
-    local SignalConnect = Signal:Connect(Function)
-    table.insert(OrionLib.Connections, SignalConnect)
-    return SignalConnect
+	if (not OrionLib:IsRunning()) then
+		return
+	end
+	local SignalConnect = Signal:Connect(Function)
+	table.insert(OrionLib.Connections, SignalConnect)
+	return SignalConnect
 end
 
--- Orion X仕様: モバイル(Touch)対応ドラッグ
-local function MakeDraggable(DragPoint, Main)
-    pcall(function()
-        local Dragging, DragInput, MousePos, FramePos = false
-        AddConnection(DragPoint.InputBegan, function(Input)
-            if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-                Dragging = true
-                MousePos = Input.Position
-                FramePos = Main.Position
+task.spawn(function()
+	while (OrionLib:IsRunning()) do
+		wait()
+	end
 
-                Input.Changed:Connect(function()
-                    if Input.UserInputState == Enum.UserInputState.End then Dragging = false end
-                end)
-            end
-        end)
-        AddConnection(DragPoint.InputChanged, function(Input)
-            if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
-                DragInput = Input
-            end
-        end)
-        AddConnection(UserInputService.InputChanged, function(Input)
-            if Input == DragInput and Dragging then
-                local Delta = Input.Position - MousePos
-                TweenService:Create(Main, TweenInfo.new(0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
-                }):Play()
-            end
-        end)
-    end)
+	for _, Connection in next, OrionLib.Connections do
+		Connection:Disconnect()
+	end
+end)
+
+local function AddDraggingFunctionality(DragPoint, Main)
+	pcall(function()
+		local Dragging, DragInput, MousePos, FramePos = false
+		DragPoint.InputBegan:Connect(function(Input)
+			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+				Dragging = true
+				MousePos = Input.Position
+				FramePos = Main.Position
+
+				Input.Changed:Connect(function()
+					if Input.UserInputState == Enum.UserInputState.End then
+						Dragging = false
+					end
+				end)
+			end
+		end)
+		DragPoint.InputChanged:Connect(function(Input)
+			if Input.UserInputType == Enum.UserInputType.MouseMovement then
+				DragInput = Input
+			end
+		end)
+		UserInputService.InputChanged:Connect(function(Input)
+			if Input == DragInput and Dragging then
+				local Delta = Input.Position - MousePos
+				TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
+			end
+		end)
+	end)
+end   
+
+local function Create(Name, Properties, Children)
+	local Object = Instance.new(Name)
+	for i, v in next, Properties or {} do
+		Object[i] = v
+	end
+	for i, v in next, Children or {} do
+		v.Parent = Object
+	end
+	return Object
 end
 
--- Orion X仕様: マウス強制アンロック
-local freeMouse = Instance.new("TextButton", Orion)
-freeMouse.Name = "OrionUnlockMouse"
-freeMouse.Size = UDim2.new(0,0,0,0)
-freeMouse.BackgroundTransparency = 1
-freeMouse.Modal = true
-freeMouse.Visible = false
-
-local mouselock = false
-function OrionLib:UnlockMouse(Value)
-    if Value then
-        mouselock = true
-        task.spawn(function()
-            while mouselock do
-                UserInputService.MouseIconEnabled = true
-                freeMouse.Visible = true
-                task.wait()
-            end
-            freeMouse.Visible = false
-        end)
-    else
-        mouselock = false
-    end
-end
-
--- Orion X仕様: カラー自動生成
-function OrionLib:GenTheme(mainColor)
-    local r, g, b = mainColor.R * 255, mainColor.G * 255, mainColor.B * 255
-    local lum = 0.299 * r + 0.587 * g + 0.114 * b
-    local dark = lum < 128
-    local t = {Main = mainColor}
-    
-    if dark then
-        t.Second = Color3.fromRGB(math.clamp(r * 1.15, 0, 255), math.clamp(g * 1.15, 0, 255), math.clamp(b * 1.15, 0, 255))
-        t.Stroke = Color3.fromRGB(math.clamp(r * 1.4, 0, 255), math.clamp(g * 1.4, 0, 255), math.clamp(b * 1.4, 0, 255))
-        t.Divider = Color3.fromRGB(math.clamp(r * 1.25, 0, 255), math.clamp(g * 1.25, 0, 255), math.clamp(b * 1.25, 0, 255))
-        t.Text = Color3.fromRGB(240, 240, 240)
-        t.TextDark = Color3.fromRGB(150, 150, 150)
-        t.Accent = Color3.fromRGB(math.clamp(r * 1.8, 0, 255), math.clamp(g * 1.8, 0, 255), math.clamp(b * 1.8, 0, 255))
-    else
-        t.Second = Color3.fromRGB(math.clamp(r * 0.9, 0, 255), math.clamp(g * 0.9, 0, 255), math.clamp(b * 0.9, 0, 255))
-        t.Stroke = Color3.fromRGB(math.clamp(r * 0.7, 0, 255), math.clamp(g * 0.7, 0, 255), math.clamp(b * 0.7, 0, 255))
-        t.Divider = Color3.fromRGB(math.clamp(r * 0.8, 0, 255), math.clamp(g * 0.8, 0, 255), math.clamp(b * 0.8, 0, 255))
-        t.Text = Color3.fromRGB(30, 30, 30)
-        t.TextDark = Color3.fromRGB(100, 100, 100)
-        t.Accent = Color3.fromRGB(math.clamp(r * 0.6, 0, 255), math.clamp(g * 0.6, 0, 255), math.clamp(b * 0.6, 0, 255))
-    end
-    return t
-end
-
--- Orion X仕様: 外部からタブ切り替え
-function OrionLib:GoToTab(tabName)
-    for name, data in pairs(Tabs) do
-        if name == tabName then
-            data.Container.Visible = true
-            TweenService:Create(data.Button, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
-        else
-            data.Container.Visible = false
-            TweenService:Create(data.Button, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-        end
-    end
-end
-
--- Orion本来の主要構造: Window作成
-function OrionLib:MakeWindow(WindowConfig)
-    WindowConfig = WindowConfig or {}
-    local WindowName = WindowConfig.Name or "Orion Library"
-    
-    -- ここでOrion特有のMainFrameアセット群、Sidebar、TopBarを生成
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 550, 0, 350)
-    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
-    MainFrame.BackgroundColor3 = OrionLib.Themes.Default.Main
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Parent = Orion
-    
-    local Corner = Instance.new("UICorner", MainFrame)
-    Corner.CornerRadius = UDim.new(0, 8)
-    
-    local TopBar = Instance.new("Frame", MainFrame)
-    TopBar.Name = "TopBar"
-    TopBar.Size = UDim2.new(1, 0, 0, 40)
-    TopBar.BackgroundTransparency = 1
-    
-    local Title = Instance.new("TextLabel", TopBar)
-    Title.Text = WindowName
-    Title.Size = UDim2.new(1, -40, 1, 0)
-    Title.Position = UDim2.new(0, 15, 0, 0)
-    Title.TextColor3 = OrionLib.Themes.Default.Text
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 16
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.BackgroundTransparency = 1
-
-    local Sidebar = Instance.new("Frame", MainFrame)
-    Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 150, 1, -40)
-    Sidebar.Position = UDim2.new(0, 0, 0, 40)
-    Sidebar.BackgroundColor3 = OrionLib.Themes.Default.Second
-    Sidebar.BorderSizePixel = 0
-    
-    local SidebarCorner = Instance.new("UICorner", Sidebar)
-    SidebarCorner.CornerRadius = UDim.new(0, 8)
-
-    local TabPack = Instance.new("ScrollingFrame", Sidebar)
-    TabPack.Size = UDim2.new(1, 0, 1, 0)
-    TabPack.BackgroundTransparency = 1
-    TabPack.ScrollBarThickness = 2
-    
-    local TabList = Instance.new("UIListLayout", TabPack)
-    TabList.Padding = UDim.new(0, 5)
-
-    local ContentViewport = Instance.new("Frame", MainFrame)
-    ContentViewport.Name = "ContentViewport"
-    ContentViewport.Size = UDim2.new(1, -160, 1, -50)
-    ContentViewport.Position = UDim2.new(0, 155, 0, 45)
-    ContentViewport.BackgroundTransparency = 1
-
-    -- ドラッグ設定
-    MakeDraggable(TopBar, MainFrame)
-
-    local WindowElements = {}
-    local FirstTab = true
-
-    -- タブ作成
-    function WindowElements:MakeTab(TabConfig)
-        TabConfig = TabConfig or {}
-        local TabName = TabConfig.Name or "Tab"
-        
-        local TabButton = Instance.new("TextButton", TabPack)
-        TabButton.Size = UDim2.new(1, -10, 0, 30)
-        TabButton.BackgroundColor3 = OrionLib.Themes.Default.Accent
-        TabButton.BackgroundTransparency = FirstTab and 0 or 1
-        TabButton.Text = TabName
-        TabButton.TextColor3 = OrionLib.Themes.Default.Text
-        TabButton.Font = Enum.Font.GothamSemibold
-        TabButton.TextSize = 14
-        
-        local BtnCorner = Instance.new("UICorner", TabButton)
-        BtnCorner.CornerRadius = UDim.new(0, 6)
-
-        local Container = Instance.new("ScrollingFrame", ContentViewport)
-        Container.Size = UDim2.new(1, 0, 1, 0)
-        Container.BackgroundTransparency = 1
-        Container.Visible = FirstTab
-        Container.ScrollBarThickness = 4
-        
-        local ContainerList = Instance.new("UIListLayout", Container)
-        ContainerList.Padding = UDim.new(0, 6)
-
-        -- 外部アクセス用テーブルへ登録
-        Tabs[TabName] = {Button = TabButton, Container = Container}
-
-        TabButton.MouseButton1Click:Connect(function()
-            OrionLib:GoToTab(TabName)
-        end)
-
-        FirstTab = false
-
-        -- Orion本来の各種Element（Button, Toggle等）の生成ロジック
-        local TabElements = {}
-
-        -- Button
-        function TabElements:AddButton(BtnConfig)
-            BtnConfig = BtnConfig or {}
-            local text = BtnConfig.Name or "Button"
-            local callback = BtnConfig.Callback or function() end
-            
-            local ButtonFrame = Instance.new("Frame", Container)
-            ButtonFrame.Size = UDim2.new(1, -10, 0, 35)
-            ButtonFrame.BackgroundColor3 = OrionLib.Themes.Default.Second
-            
-            local bCorner = Instance.new("UICorner", ButtonFrame)
-            bCorner.CornerRadius = UDim.new(0, 6)
-            
-            local TextBtn = Instance.new("TextButton", ButtonFrame)
-            TextBtn.Size = UDim2.new(1, 0, 1, 0)
-            TextBtn.BackgroundTransparency = 1
-            TextBtn.Text = text
-            TextBtn.TextColor3 = OrionLib.Themes.Default.Text
-            TextBtn.Font = Enum.Font.Gotham
-            TextBtn.TextSize = 14
-            
-            TextBtn.MouseButton1Click:Connect(function()
-                pcall(callback)
-            end)
-        end
-
-        -- Toggle
-        function TabElements:AddToggle(ToggleConfig)
-            ToggleConfig = ToggleConfig or {}
-            local text = ToggleConfig.Name or "Toggle"
-            local default = ToggleConfig.Default or false
-            local callback = ToggleConfig.Callback or function() end
-            local flag = ToggleConfig.Flag or text
-            
-            local ToggleFrame = Instance.new("Frame", Container)
-            ToggleFrame.Size = UDim2.new(1, -10, 0, 35)
-            ToggleFrame.BackgroundColor3 = OrionLib.Themes.Default.Second
-            
-            local tCorner = Instance.new("UICorner", ToggleFrame)
-            tCorner.CornerRadius = UDim.new(0, 6)
-            
-            local Label = Instance.new("TextLabel", ToggleFrame)
-            Label.Text = text
-            Label.Size = UDim2.new(1, -50, 1, 0)
-            Label.Position = UDim2.new(0, 10, 0, 0)
-            Label.TextColor3 = OrionLib.Themes.Default.Text
-            Label.Font = Enum.Font.Gotham
-            Label.TextSize = 14
-            Label.TextXAlignment = Enum.TextXAlignment.Left
-            Label.BackgroundTransparency = 1
-            
-            local Indicator = Instance.new("Frame", ToggleFrame)
-            Indicator.Size = UDim2.new(0, 20, 0, 20)
-            Indicator.Position = UDim2.new(1, -30, 0, 7)
-            Indicator.BackgroundColor3 = default and OrionLib.Themes.Default.Accent or OrionLib.Themes.Default.Main
-            Instance.new("UICorner", Indicator).CornerRadius = UDim.new(0, 4)
-            
-            local Clicker = Instance.new("TextButton", ToggleFrame)
-            Clicker.Size = UDim2.new(1, 0, 1, 0)
-            Clicker.BackgroundTransparency = 1
-            Clicker.Text = ""
-            
-            local Toggled = default
-            OrionLib.Flags[flag] = {
-                Value = Toggled,
-                Set = function(self, v)
-                    Toggled = v
-                    Indicator.BackgroundColor3 = Toggled and OrionLib.Themes.Default.Accent or OrionLib.Themes.Default.Main
-                    pcall(callback, Toggled)
-                end
-            }
-            
-            Clicker.MouseButton1Click:Connect(function()
-                Toggled = not Toggled
-                OrionLib.Flags[flag]:Set(Toggled)
-            end)
-        end
-
-        return TabElements
-    end
-
-    return WindowElements
-end
-
-return OrionLib
+local function CreateElement(ElementName, ElementFunction)
+	OrionLib.Elements[ElementName] = function(...)
+		return ElementFunction(...)
+	end
