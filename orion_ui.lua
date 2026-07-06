@@ -7,7 +7,7 @@ local Window = OrionLibrary:MakeWindow({
     HidePremium = false, 
     SaveConfig = true,
     ConfigFolder = "emojiHUB",
-    KeyToOpenWindow = Enum.KeyCode.Toggle,
+    KeyToOpenWindow = Enum.KeyCode.RightShift,
     FreeMouse = true
 })
 
