@@ -95,6 +95,39 @@ task.spawn(function()
 	end
 end)
 
+-- [移植] FreeMouse 用の変数と関数定義
+local function Create(Name, Properties, Children)
+	local Object = Instance.new(Name)
+	for i, v in next, Properties or {} do
+		Object[i] = v
+	end
+	for i, v in next, Children or {} do
+		v.Parent = Object
+	end
+	return Object
+end
+
+local freeMouse = Create("TextButton", {Name = "FMouse", Size = UDim2.new(0,0,0,0), BackgroundTransparency = 1, Text = "", Position = UDim2.new(0,0,0,0), Modal = true, Parent = Orion, Visible = false})
+local mouselock = false
+
+local function UnlockMouse(Value)
+	if Value then
+		mouselock = true
+		task.spawn(function() 
+			while mouselock do
+				UserInputService.MouseIconEnabled = true
+				freeMouse.Visible = true
+				task.wait()
+			end
+			UserInputService.MouseIconEnabled = false
+			freeMouse.Visible = false
+		end)
+	else
+		mouselock = false
+		freeMouse.Visible = false
+	end
+end
+
 local function AddDraggingFunctionality(DragPoint, Main)
 	pcall(function()
 		local Dragging, DragInput, MousePos, FramePos = false
@@ -124,17 +157,6 @@ local function AddDraggingFunctionality(DragPoint, Main)
 		end)
 	end)
 end   
-
-local function Create(Name, Properties, Children)
-	local Object = Instance.new(Name)
-	for i, v in next, Properties or {} do
-		Object[i] = v
-	end
-	for i, v in next, Children or {} do
-		v.Parent = Object
-	end
-	return Object
-end
 
 local function CreateElement(ElementName, ElementFunction)
 	OrionLib.Elements[ElementName] = function(...)
@@ -249,27 +271,6 @@ local function CheckKey(Table, Key)
 		if v == Key then
 			return true
 		end
-	end
-end
-
--- [移植] FreeMouse 機能用のインフラストラクチャ
-local freeMouse = Create("TextButton", {Name = "FMouse", Size = UDim2.new(0,0,0,0), BackgroundTransparency = 1, Text = "", Position = UDim2.new(0,0,0,0), Modal = true, Parent = Orion, Visible = false})
-local mouselock = false
-
-local function UnlockMouse(Value)
-	if Value then
-		mouselock = true
-		task.spawn(function() 
-			while mouselock do
-				UserInputService.MouseIconEnabled = Value
-				freeMouse.Visible = Value
-				task.wait()
-			end
-			UserInputService.MouseIconEnabled = false
-			freeMouse.Visible = false
-		end)
-	else
-		mouselock = false
 	end
 end
 
@@ -502,9 +503,12 @@ function OrionLib:MakeWindow(WindowConfig)
 	WindowConfig.Icon = WindowConfig.Icon or "rbxassetid://8834748103"
 	WindowConfig.IntroIcon = WindowConfig.IntroIcon or "rbxassetid://8834748103"
 	
-	-- [移植] WindowConfig オプションの規定値定義
+	-- [移植設定] KeyToOpenWindow & FreeMouse
+	WindowConfig.FreeMouse = WindowConfig.FreeMouse or false
 	WindowConfig.KeyToOpenWindow = WindowConfig.KeyToOpenWindow or Enum.KeyCode.RightShift
-	if WindowConfig.FreeMouse == nil then WindowConfig.FreeMouse = false end
+	if typeof(WindowConfig.KeyToOpenWindow) == "string" then
+		WindowConfig.KeyToOpenWindow = Enum.KeyCode[WindowConfig.KeyToOpenWindow]
+	end
 
 	OrionLib.Folder = WindowConfig.ConfigFolder
 	OrionLib.SaveCfg = WindowConfig.SaveConfig
@@ -688,9 +692,22 @@ function OrionLib:MakeWindow(WindowConfig)
 
 	AddDraggingFunctionality(DragPoint, MainWindow)
 
+	-- [移植・改良] 共通の開閉トグル処理
+	local function SetUIVisibility(visible)
+		MainWindow.Visible = visible
+		UIHidden = not visible
+		if WindowConfig.FreeMouse then
+			UnlockMouse(visible)
+		end
+	end
+
+	-- 初期起動時のFreeMouseの適用
+	if WindowConfig.FreeMouse then
+		UnlockMouse(true)
+	end
+
 	AddConnection(CloseBtn.MouseButton1Up, function()
-		MainWindow.Visible = false
-		UIHidden = true
+		SetUIVisibility(false)
 		OrionLib:MakeNotification({
 			Name = "Interface Hidden",
 			Content = "Tap " .. WindowConfig.KeyToOpenWindow.Name .. " to reopen the interface",
@@ -699,23 +716,12 @@ function OrionLib:MakeWindow(WindowConfig)
 		WindowConfig.CloseCallback()
 	end)
 
-	-- [移植] KeyToOpenWindow を反映したGUIトグルロジック
+	-- [移植] 任意のキーでのトグル開閉処理
 	AddConnection(UserInputService.InputBegan, function(Input)
 		if Input.KeyCode == WindowConfig.KeyToOpenWindow then
-			if UIHidden then
-				MainWindow.Visible = true
-				UIHidden = false
-			else
-				MainWindow.Visible = false
-				UIHidden = true
-			end
+			SetUIVisibility(not MainWindow.Visible)
 		end
 	end)
-
-	-- [移植] FreeMouse 属性に基づいた初期設定の実行
-	if WindowConfig.FreeMouse then
-		UnlockMouse(true)
-	end
 
 	AddConnection(MinimizeBtn.MouseButton1Up, function()
 		if Minimized then
@@ -768,6 +774,8 @@ function OrionLib:MakeWindow(WindowConfig)
 		MainWindow.Visible = true
 		LoadSequenceLogo:Destroy()
 		LoadSequenceText:Destroy()
+		-- イントロ終了後のFreeMouseの再チェック
+		if WindowConfig.FreeMouse then UnlockMouse(true) end
 	end 
 
 	if WindowConfig.IntroEnabled then
@@ -1772,6 +1780,7 @@ function OrionLib:MakeWindow(WindowConfig)
 end   
 
 function OrionLib:Destroy()
+	UnlockMouse(false) -- [移植] 破棄時にロック解除を終了
 	Orion:Destroy()
 end
 
