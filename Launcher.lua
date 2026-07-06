@@ -1,6 +1,14 @@
+local TextChatService = game:GetService("TextChatService")
+local textChannels = TextChatService:FindFirstChild("TextChannels")
+local generalChannel = textChannels and textChannels:FindFirstChild("RBXGeneral")
+
 -- 1. 自作ランチャー画面の消去
 if game:GetService("CoreGui"):FindFirstChild("UI_Launcher") then
     game:GetService("CoreGui").UI_Launcher:Destroy()
+else
+    if generalChannel then
+        generalChannel:SendAsync("(＃°Д°)HUB(公開鯖テスト中)起動中だよ(•ω•)")
+    end
 end
 
 -- 2. Orion UIのオブジェクトを消去
