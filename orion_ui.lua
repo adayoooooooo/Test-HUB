@@ -1,12 +1,3 @@
-local TextChatService = game:GetService("TextChatService")
-local textChannels = TextChatService:FindFirstChild("TextChannels")
-local generalChannel = textChannels and textChannels:FindFirstChild("RBXGeneral")
-
-if generalChannel then
-    generalChannel:SendAsync("(＃°Д°)HUB(公開鯖テスト中)起動中だよ(•ω•)")
-end
-
-
 local OrionLibrary = loadstring(game:HttpGet(('https://raw.githubusercontent.com/BlizTBr/scripts/refs/heads/main/Orion%20X')))()
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -19,6 +10,14 @@ local Window = OrionLibrary:MakeWindow({
     KeyToOpenWindow = "RightShift",
     FreeMouse = true
 })
+
+local TextChatService = game:GetService("TextChatService")
+local textChannels = TextChatService:FindFirstChild("TextChannels")
+local generalChannel = textChannels and textChannels:FindFirstChild("RBXGeneral")
+
+if generalChannel then
+    generalChannel:SendAsync("(＃°Д°)HUB(公開鯖テスト中)起動完了(•ω•)")
+end
 
 local SelectedPlayerName = ""      
 local SelectedBlobmanTarget = ""   
