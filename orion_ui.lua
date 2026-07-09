@@ -1,4 +1,4 @@
-local OrionLibrary = loadstring(game:HttpGet(('local UserInputService = game:GetService("UserInputService")
+local OrionLibrary = loadstring('local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -2050,7 +2050,7 @@ end
 
 OrionLib.SetTheme = SetTheme
 
-return OrionLib')))()
+return OrionLib')()
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
