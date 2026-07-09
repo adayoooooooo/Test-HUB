@@ -34,6 +34,11 @@ PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1,
 PlayerTab:AddToggle({ Name = "JumpPowerOverride", Default = false, Callback = function(Value) _G.JumpPowerOverride = Value end })
 PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Callback = function(Value) _G.JumpMultiplier = Value end })
 PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Callback = function(Value) _G.InfiniteJump = Value end })
+PlayerTab:AddButton({ Mame = "Vfly",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/makkurokurosukescript/VFly-gui/refs/heads/main/VFly%20gui", true))()
+    end
+})
 PlayerTab:AddLabel("--- Camera Settings (TPS) ---")
 -- --- ドロップダウンデータ生成 ---
 local function GetPlayerDropdownData()
