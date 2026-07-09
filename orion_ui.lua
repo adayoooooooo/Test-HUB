@@ -7,7 +7,7 @@ if generalChannel then
 end
 
 
-local OrionLibrary = loadstring(game:HttpGet(('https://github.com/hololove1021/HolonHUB/blob/main/source.txt')))()
+local OrionLibrary = loadstring(game:HttpGet((https://raw.githubusercontent.com/hololove1021/HolonHUB/refs/heads/main/source.txt')))()
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
