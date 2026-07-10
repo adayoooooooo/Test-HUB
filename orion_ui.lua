@@ -36,15 +36,20 @@ PlayerTab:AddToggle({ Name = "JumpPowerOverride", Default = false, Callback = fu
 PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Callback = function(Value) _G.JumpMultiplier = Value end })
 PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Callback = function(Value) _G.InfiniteJump = Value end })
 
+-- ========================================================
+-- 【修正版】Vfly GUI 起動ボタン（独立動作・CoreGui配置・通知なし）
+-- ========================================================
 PlayerTab:AddButton({
-    Name = "VFLY",
+    Name = "Launch VFLY GUI V3",
     Callback = function()
-        -- すでに起動している場合は重複防止で削除
-        if game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("main") then
-            game.Players.LocalPlayer.PlayerGui.main:Destroy()
+        -- 配置先をCoreGuiに変更（エクスプロイト環境に応じてフォールバック）
+        local targetParent = game:GetService("CoreGui") or player:FindFirstChildOfClass("PlayerGui")
+        
+        -- 重複防止
+        if targetParent:FindFirstChild("main") then
+            targetParent.main:Destroy()
         end
 
-        -- 元のVfly GUIコードをそのまま生成（独立動作）
         local main = Instance.new("ScreenGui")
         local Frame = Instance.new("Frame")
         local up = Instance.new("TextButton")
@@ -59,7 +64,7 @@ PlayerTab:AddButton({
         local mini2 = Instance.new("TextButton")
 
         main.Name = "main"
-        main.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+        main.Parent = targetParent
         main.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         main.ResetOnSpawn = false
 
@@ -176,94 +181,132 @@ PlayerTab:AddButton({
         local speeds = 1
         local speaker = game:GetService("Players").LocalPlayer
         local nowe = false
+        local tpwalking = false
 
-        game:GetService("StarterGui"):SetCore("SendNotification", { 
-            Title = "FLY GUI V3";
-            Text = "BY XNEO";
-            Icon = "rbxthumb://type=Asset&id=5107182114&w=150&h=150"
-        })
+        -- 【修正】SendNotification（通知処理）は削除しました。
 
         Frame.Active = true
         Frame.Draggable = true
 
+        -- 現在操作対象のターゲット（乗り物優先、なければ自身）を取得する関数
+        local function getVflyTarget()
+            local chr = speaker.Character
+            if chr then
+                local hum = chr:FindFirstChildOfClass("Humanoid")
+                if hum and hum.SeatPart and hum.SeatPart:IsA("VehicleSeat") then
+                    return hum.SeatPart -- 乗り物の座席を返す
+                elseif chr:FindFirstChild("HumanoidRootPart") then
+                    return chr.HumanoidRootPart
+                end
+            end
+            return nil
+        end
+
         onof.MouseButton1Down:connect(function()
             if nowe == true then
                 nowe = false
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
-                speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+                if speaker.Character and speaker.Character:FindFirstChildOfClass("Humanoid") then
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
+                    speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
+                    speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+                end
+                tpwalking = false
             else 
                 nowe = true
                 for i = 1, speeds do
                     spawn(function()
                         local hb = game:GetService("RunService").Heartbeat	
                         tpwalking = true
-                        local chr = game.Players.LocalPlayer.Character
-                        local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-                        while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-                            if hum.MoveDirection.Magnitude > 0 then
-                                chr:TranslateBy(hum.MoveDirection)
+                        while tpwalking and hb:Wait() do
+                            local target = getVflyTarget()
+                            local chr = speaker.Character
+                            local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
+                            if hum and target and hum.MoveDirection.Magnitude > 0 then
+                                -- 乗り物に乗っている時は乗り物ごとTranslateする
+                                if target:IsA("VehicleSeat") and target.Parent then
+                                    target.Parent:TranslateBy(hum.MoveDirection)
+                                else
+                                    chr:TranslateBy(hum.MoveDirection)
+                                end
                             end
                         end
                     end)
                 end
-                game.Players.LocalPlayer.Character.Animate.Disabled = true
-                local Char = game.Players.LocalPlayer.Character
-                local Hum = Char:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
-
-                for i,v in next, Hum:GetPlayingAnimationTracks() do
-                    v:AdjustSpeed(0)
+                
+                if speaker.Character then
+                    speaker.Character.Animate.Disabled = true
+                    local Hum = speaker.Character:FindFirstChildOfClass("Humanoid") or speaker.Character:FindFirstChildOfClass("AnimationController")
+                    if Hum then
+                        for i,v in next, Hum:GetPlayingAnimationTracks() do v:AdjustSpeed(0) end
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Running,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
+                        Hum:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
+                        Hum:ChangeState(Enum.HumanoidStateType.Swimming)
+                    end
                 end
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
-                speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
-                speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
             end
 
-            if game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
+            -- Vfly移動追従処理用コア（乗り物シートまたはTorsoを直接移動制御）
+            spawn(function()
                 local plr = game.Players.LocalPlayer
-                local torso = plr.Character.Torso
                 local ctrl = {f = 0, b = 0, l = 0, r = 0}
                 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
                 local maxspeed = 50
                 local speed = 0
 
-                local bg = Instance.new("BodyGyro", torso)
+                -- 動的に乗り物シートかキャラクターパーツかを判別してボディ移動を追加
+                local targetPart = getVflyTarget()
+                if not targetPart then return end
+                
+                -- VehicleSeatなら最親のRootPart、無ければSeat自体を掴む
+                if targetPart:IsA("VehicleSeat") and targetPart.Parent and targetPart.Parent:IsA("Model") and targetParent.Parent.PrimaryPart then
+                    targetPart = targetPart.Parent.PrimaryPart
+                elseif targetPart:IsA("VehicleSeat") then
+                    targetPart = targetPart
+                else
+                    targetPart = plr.Character:FindFirstChild("Torso") or plr.Character:FindFirstChild("UpperTorso")
+                end
+
+                if not targetPart then return end
+
+                local bg = Instance.new("BodyGyro", targetPart)
                 bg.P = 9e4
                 bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-                bg.cframe = torso.CFrame
-                local bv = Instance.new("BodyVelocity", torso)
+                bg.cframe = targetPart.CFrame
+                local bv = Instance.new("BodyVelocity", targetPart)
                 bv.velocity = Vector3.new(0,0.1,0)
                 bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-                if nowe == true then
-                    plr.Character.Humanoid.PlatformStand = true
+                
+                if nowe == true and plr.Character:FindFirstChildOfClass("Humanoid") then
+                    plr.Character:FindFirstChildOfClass("Humanoid").PlatformStand = true
                 end
-                while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
+
+                while nowe == true or (plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") and plr.Character:FindFirstChildOfClass("Humanoid").Health == 0) do
                     game:GetService("RunService").RenderStepped:Wait()
 
                     if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
@@ -288,64 +331,26 @@ PlayerTab:AddButton({
                 speed = 0
                 bg:Destroy()
                 bv:Destroy()
-                plr.Character.Humanoid.PlatformStand = false
-                game.Players.LocalPlayer.Character.Animate.Disabled = false
-                tpwalking = false
-            else
-                local plr = game.Players.LocalPlayer
-                local UpperTorso = plr.Character.UpperTorso
-                local ctrl = {f = 0, b = 0, l = 0, r = 0}
-                local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-                local maxspeed = 50
-                local speed = 0
-
-                local bg = Instance.new("BodyGyro", UpperTorso)
-                bg.P = 9e4
-                bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-                bg.cframe = UpperTorso.CFrame
-                local bv = Instance.new("BodyVelocity", UpperTorso)
-                bv.velocity = Vector3.new(0,0.1,0)
-                bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-                if nowe == true then
-                    plr.Character.Humanoid.PlatformStand = true
+                if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+                    plr.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+                    plr.Character.Animate.Disabled = false
                 end
-                while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
-                    wait()
-
-                    if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-                        speed = speed+.5+(speed/maxspeed)
-                        if speed > maxspeed then speed = maxspeed end
-                    elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-                        speed = speed-1
-                        if speed < 0 then speed = 0 end
-                    end
-                    if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-                        bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-                        lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-                    elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-                        bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-                    else
-                        bv.velocity = Vector3.new(0,0,0)
-                    end
-                    bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
-                end
-                ctrl = {f = 0, b = 0, l = 0, r = 0}
-                lastctrl = {f = 0, b = 0, l = 0, r = 0}
-                speed = 0
-                bg:Destroy()
-                bv:Destroy()
-                plr.Character.Humanoid.PlatformStand = false
-                game.Players.LocalPlayer.Character.Animate.Disabled = false
                 tpwalking = false
-            end
+            end)
         end)
 
+        -- 高度UP/DOWNも乗り物シート対応
         local tis
         up.MouseButton1Down:connect(function()
             tis = up.MouseEnter:connect(function()
                 while tis do
                     wait()
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,1,0)
+                    local target = getVflyTarget()
+                    if target and target:IsA("VehicleSeat") and target.Parent and target.Parent:IsA("Model") and target.Parent.PrimaryPart then
+                        target.Parent:SetPrimaryPartCFrame(target.Parent:GetPrimaryPartCFrame() * CFrame.new(0,1,0))
+                    elseif target then
+                        target.CFrame = target.CFrame * CFrame.new(0,1,0)
+                    end
                 end
             end)
         end)
@@ -358,7 +363,12 @@ PlayerTab:AddButton({
             dis = down.MouseEnter:connect(function()
                 while dis do
                     wait()
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,-1,0)
+                    local target = getVflyTarget()
+                    if target and target:IsA("VehicleSeat") and target.Parent and target.Parent:IsA("Model") and target.Parent.PrimaryPart then
+                        target.Parent:SetPrimaryPartCFrame(target.Parent:GetPrimaryPartCFrame() * CFrame.new(0,-1,0))
+                    elseif target then
+                        target.CFrame = target.CFrame * CFrame.new(0,-1,0)
+                    end
                 end
             end)
         end)
@@ -375,10 +385,17 @@ PlayerTab:AddButton({
                     spawn(function()
                         local hb = game:GetService("RunService").Heartbeat	
                         tpwalking = true
-                        local chr = game.Players.LocalPlayer.Character
-                        local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-                        while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-                            if hum.MoveDirection.Magnitude > 0 then chr:TranslateBy(hum.MoveDirection) end
+                        while tpwalking and hb:Wait() do
+                            local target = getVflyTarget()
+                            local chr = speaker.Character
+                            local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
+                            if hum and target and hum.MoveDirection.Magnitude > 0 then
+                                if target:IsA("VehicleSeat") and target.Parent then
+                                    target.Parent:TranslateBy(hum.MoveDirection)
+                                else
+                                    chr:TranslateBy(hum.MoveDirection)
+                                end
+                            end
                         end
                     end)
                 end
@@ -399,10 +416,17 @@ PlayerTab:AddButton({
                         spawn(function()
                             local hb = game:GetService("RunService").Heartbeat	
                             tpwalking = true
-                            local chr = game.Players.LocalPlayer.Character
-                            local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-                            while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-                                if hum.MoveDirection.Magnitude > 0 then chr:TranslateBy(hum.MoveDirection) end
+                            while tpwalking and hb:Wait() do
+                                local target = getVflyTarget()
+                                local chr = speaker.Character
+                                local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
+                                if hum and target and hum.MoveDirection.Magnitude > 0 then
+                                    if target:IsA("VehicleSeat") and target.Parent then
+                                        target.Parent:TranslateBy(hum.MoveDirection)
+                                    else
+                                        chr:TranslateBy(hum.MoveDirection)
+                                    end
+                                end
                             end
                         end)
                     end
