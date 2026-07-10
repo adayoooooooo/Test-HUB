@@ -26,7 +26,7 @@ local SelectedBlobmanTarget = ""
 
 -- --- 自作Vfly用の変数 ---
 local FlyEnabled = false
-local FlySpeed = 50
+local FlySpeed = 1
 local FlyConnection = nil
 local BodyGyro = nil
 local BodyVelocity = nil
@@ -126,7 +126,7 @@ PlayerTab:AddToggle({
                     end
 
                     if direction.Magnitude > 0 then
-                        BodyVelocity.velocity = direction.Unit * FlySpeed
+                        BodyVelocity.velocity = direction.Unit * FlySpeed * 2
                     else
                         BodyVelocity.velocity = Vector3.new(0, 0, 0)
                     end
@@ -150,7 +150,7 @@ PlayerTab:AddSlider({
     Max = 10,
     Default = 1,
     Color = Color3.fromRGB(255,255,255),
-    Increment = 2,
+    Increment = 0,
     ValueName = "speed",
     Callback = function(Value)
         FlySpeed = Value
