@@ -132,7 +132,7 @@ PlayerTab:AddToggle({
 
 PlayerTab:AddSlider({
     Name = "Fly Speed",
-    Min = 10,
+    Min = 50,
     Max = 300,
     Default = 50,
     Color = Color3.fromRGB(255,255,255),
