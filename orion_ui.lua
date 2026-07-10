@@ -144,6 +144,19 @@ PlayerTab:AddToggle({
     end
 })
 
+PlayerTab:AddSlider({
+    Name = "Fly Speed",
+    Min = 1,
+    Max = 10,
+    Default = 1,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 2,
+    ValueName = "speed",
+    Callback = function(Value)
+        FlySpeed = Value
+    end
+})
+
 -- --- ドロップダウンデータ生成 ---
 local function GetPlayerDropdownData()
     local displayList = {}
