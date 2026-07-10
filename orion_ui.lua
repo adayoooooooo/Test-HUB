@@ -44,7 +44,7 @@ PlayerTab:AddToggle({ Name = "JumpPowerOverride", Default = false, Callback = fu
 PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Callback = function(Value) _G.JumpMultiplier = Value end })
 PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Callback = function(Value) _G.InfiniteJump = Value end })
 
--- --- Vfly用コントロール (UI完結型) ---
+-- --- Vfly用コントロール (UI完結型・乗り物維持版) ---
 PlayerTab:AddToggle({
     Name = "Vfly (Vehicle Fly)",
     Default = false,
@@ -63,13 +63,11 @@ PlayerTab:AddToggle({
                 local char = player.Character
                 if not char then return end
                 
-                -- 乗っている乗り物（Seat）か、自身のHumanoidRootPartを取得
                 local humanoid = char:FindFirstChildOfClass("Humanoid")
                 local targetPart = (humanoid and humanoid.SeatPart) or char:FindFirstChild("HumanoidRootPart")
                 
                 if not targetPart then return end
 
-                -- 物理エンジンの制御オブジェクトを作成
                 BodyGyro = Instance.new("BodyGyro")
                 BodyGyro.P = 9e4
                 BodyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
@@ -81,18 +79,15 @@ PlayerTab:AddToggle({
                 BodyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
                 BodyVelocity.Parent = targetPart
 
-                -- ループ処理をRunServiceで最適化
                 FlyConnection = RunService.RenderStepped:Connect(function()
                     if not FlyEnabled or not targetPart or not targetPart.Parent then
                         if FlyConnection then FlyConnection:Disconnect() FlyConnection = nil end
                         return
                     end
 
-                    -- カメラの向きに合わせて機首を固定
                     local cameraCFrame = workspace.CurrentCamera.CFrame
                     BodyGyro.cframe = cameraCFrame
 
-                    -- キーボード入力の取得
                     local UserInputService = game:GetService("UserInputService")
                     local direction = Vector3.new(0, 0, 0)
 
@@ -115,7 +110,6 @@ PlayerTab:AddToggle({
                         direction = direction - Vector3.new(0, 1, 0)
                     end
 
-                    -- 速度の適用
                     if direction.Magnitude > 0 then
                         BodyVelocity.velocity = direction.Unit * FlySpeed
                     else
@@ -124,11 +118,13 @@ PlayerTab:AddToggle({
                 end)
             end)
         else
-            -- オフにされた時にキャラクターのステートを戻す
+            -- 【修正ポイント】オフにされた時、シートに座っていなければステートを戻す
             local char = player.Character
             if char then
                 local hum = char:FindFirstChildOfClass("Humanoid")
-                if hum then hum:ChangeState(Enum.HumanoidStateType.Freefall) end
+                if hum and not hum.Sit then 
+                    hum:ChangeState(Enum.HumanoidStateType.Freefall) 
+                end
             end
         end
     end
