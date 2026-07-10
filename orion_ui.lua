@@ -150,7 +150,7 @@ PlayerTab:AddSlider({
     Max = 10,
     Default = 1,
     Color = Color3.fromRGB(255,255,255),
-    Increment = 0,
+    Increment = 1,
     ValueName = "speed",
     Callback = function(Value)
         FlySpeed = Value
