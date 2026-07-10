@@ -1,5 +1,6 @@
 local OrionLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/hololove1021/HolonHUB/refs/heads/main/source.txt"))()
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
@@ -23,23 +24,126 @@ end
 local SelectedPlayerName = ""      
 local SelectedBlobmanTarget = ""   
 
+-- --- 自作Vfly用の変数 ---
+local FlyEnabled = false
+local FlySpeed = 50
+local FlyConnection = nil
+local BodyGyro = nil
+local BodyVelocity = nil
+
 -- --- タブ作成 ---
 local PlayerTab = Window:MakeTab({ Name = "Player", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = "rbxassetid://7733992829", PremiumOnly = false }) 
 local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = "rbxassetid://7734056608", PremiumOnly = false })
 local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 
--- --- Player タブ (既存機能) ---
+-- --- Player タブ (既存機能 + 自作Vfly) ---
 PlayerTab:AddToggle({ Name = "WalkspeedOverride", Default = false, Callback = function(Value) _G.WalkspeedOverride = Value end })
 PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Callback = function(Value) _G.SpeedMultiplier = Value end })
 PlayerTab:AddToggle({ Name = "JumpPowerOverride", Default = false, Callback = function(Value) _G.JumpPowerOverride = Value end })
 PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Callback = function(Value) _G.JumpMultiplier = Value end })
 PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Callback = function(Value) _G.InfiniteJump = Value end })
 
-PlayerTab:AddButton({
-    Name = "Launch VFLY GUI V3",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/makkurokurosukescript/VFly-gui/refs/heads/main/VFly%20gui", true))()
+-- --- Vfly用コントロール (UI完結型) ---
+PlayerTab:AddToggle({
+    Name = "Vfly (Vehicle Fly)",
+    Default = false,
+    Callback = function(Value)
+        FlyEnabled = Value
+        
+        if FlyConnection then 
+            FlyConnection:Disconnect() 
+            FlyConnection = nil 
+        end
+        if BodyGyro then BodyGyro:Destroy() BodyGyro = nil end
+        if BodyVelocity then BodyVelocity:Destroy() BodyVelocity = nil end
+
+        if FlyEnabled then
+            task.spawn(function()
+                local char = player.Character
+                if not char then return end
+                
+                -- 乗っている乗り物（Seat）か、自身のHumanoidRootPartを取得
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                local targetPart = (humanoid and humanoid.SeatPart) or char:FindFirstChild("HumanoidRootPart")
+                
+                if not targetPart then return end
+
+                -- 物理エンジンの制御オブジェクトを作成
+                BodyGyro = Instance.new("BodyGyro")
+                BodyGyro.P = 9e4
+                BodyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+                BodyGyro.cframe = targetPart.CFrame
+                BodyGyro.Parent = targetPart
+
+                BodyVelocity = Instance.new("BodyVelocity")
+                BodyVelocity.velocity = Vector3.new(0, 0.1, 0)
+                BodyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
+                BodyVelocity.Parent = targetPart
+
+                -- ループ処理をRunServiceで最適化
+                FlyConnection = RunService.RenderStepped:Connect(function()
+                    if not FlyEnabled or not targetPart or not targetPart.Parent then
+                        if FlyConnection then FlyConnection:Disconnect() FlyConnection = nil end
+                        return
+                    end
+
+                    -- カメラの向きに合わせて機首を固定
+                    local cameraCFrame = workspace.CurrentCamera.CFrame
+                    BodyGyro.cframe = cameraCFrame
+
+                    -- キーボード入力の取得
+                    local UserInputService = game:GetService("UserInputService")
+                    local direction = Vector3.new(0, 0, 0)
+
+                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                        direction = direction + cameraCFrame.LookVector
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                        direction = direction - cameraCFrame.LookVector
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                        direction = direction - cameraCFrame.RightVector
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                        direction = direction + cameraCFrame.RightVector
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                        direction = direction + Vector3.new(0, 1, 0)
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        direction = direction - Vector3.new(0, 1, 0)
+                    end
+
+                    -- 速度の適用
+                    if direction.Magnitude > 0 then
+                        BodyVelocity.velocity = direction.Unit * FlySpeed
+                    else
+                        BodyVelocity.velocity = Vector3.new(0, 0, 0)
+                    end
+                end)
+            end)
+        else
+            -- オフにされた時にキャラクターのステートを戻す
+            local char = player.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then hum:ChangeState(Enum.HumanoidStateType.Freefall) end
+            end
+        end
+    end
+})
+
+PlayerTab:AddSlider({
+    Name = "Fly Speed",
+    Min = 10,
+    Max = 300,
+    Default = 50,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 5,
+    ValueName = "Studs/s",
+    Callback = function(Value)
+        FlySpeed = Value
     end
 })
 
