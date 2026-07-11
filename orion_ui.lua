@@ -8,7 +8,7 @@ local Window = OrionLibrary:MakeWindow({
     Name = "(＃°Д°)HUB (FTAP)",
     HidePremium = false, 
     SaveConfig = true,
-    ConfigFolder = "emojiHUB",
+    ConfigFolder = "TestHUB",
     KeyToOpenWindow = "RightShift",
     FreeMouse = true
 })
