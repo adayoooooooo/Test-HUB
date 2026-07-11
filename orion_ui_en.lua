@@ -37,7 +37,7 @@ local textChannels = TextChatService:FindFirstChild("TextChannels")
 local generalChannel = textChannels and textChannels:FindFirstChild("RBXGeneral")
 
 if generalChannel then
-    generalChannel:SendAsync("(＃°Д°)HUB by Creator Tester, Beginner Cheater (Public Server Testing) Load Complete(•ω•)")
+    generalChannel:SendAsync("(＃°Д°)HUB by 自作テスター,初心者チーター(公開鯖テスト)起動完了(•ω•)")
 end
 
 local SelectedPlayerName = ""      
@@ -49,7 +49,7 @@ local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = "rbxassetid://773
 local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = "rbxassetid://7734056608", PremiumOnly = false })
 local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 
-otherlanguage:AddButton({Name = "Boot Japanese Version", Callback = function()end})
+otherlanguage:AddButton({Name = "JP版起動", Callback = function()end})
 _G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "Walkspeed Override", Default = false, Flag = "WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
 _G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
 _G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "Jump Power Override", Default = false, Flag = "JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
