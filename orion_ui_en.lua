@@ -4,7 +4,6 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- --- 1. 最初はすべて完全にオフ(デフォルト状態)に初期化 ---
 _G.WalkspeedOverride = false
 _G.SpeedMultiplier = 1
 _G.JumpPowerOverride = false
@@ -23,7 +22,6 @@ local AntiGrabEnabled = false
 local AntiSitEnabled = false
 local BlobmanKickLoop = false    
 
--- 起動時のUI構築による誤作動を防ぐフラグ
 local IsLoadingConfig = true 
 
 local Window = OrionLibrary:MakeWindow({
@@ -46,20 +44,17 @@ end
 local SelectedPlayerName = ""      
 local SelectedBlobmanTarget = ""   
 
--- --- タブ作成 ---
-local PlayerTab = Window:MakeTab({ Name = "Player", Icon = "rbxassetid://13585613884", PremiumOnly = false })
-local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = "rbxassetid://7733992829", PremiumOnly = false }) 
-local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = "rbxassetid://7734056608", PremiumOnly = false })
-local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = "rbxassetid://13585613884", PremiumOnly = false })
+local PlayerTab = Window:MakeTab({ Name = "Player", Icon = rbxassetid://13585613884 or "rbxassetid://13585613884", PremiumOnly = false })
+local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = rbxassetid://7733992829 or "rbxassetid://7733992829", PremiumOnly = false }) 
+local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = rbxassetid://7734056608 or "rbxassetid://7734056608", PremiumOnly = false })
+local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = rbxassetid://13585613884 or "rbxassetid://13585613884", PremiumOnly = false })
 
--- --- Player タブ ---
 _G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "WalkspeedOverride", Default = false, Flag = "WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
 _G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
 _G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "JumpPowerOverride", Default = false, Flag = "JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
 _G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })
 _G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Flag = "InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })
 
--- --- Vfly用コントロール ---
 _G.O_VflyToggle = PlayerTab:AddToggle({
     Name = "Vfly (Vehicle Fly)",
     Default = false,
@@ -156,7 +151,6 @@ _G.O_FlySpeed = PlayerTab:AddSlider({
     Callback = function(Value) if not IsLoadingConfig then FlySpeed = Value end end
 })
 
--- --- ドロップダウンデータ生成 ---
 local function GetPlayerDropdownData()
     local displayList = {}
     local nameMap = {} 
@@ -172,7 +166,6 @@ end
 
 local currentDisplayList, currentNameMap = GetPlayerDropdownData()
 
--- --- Teleport タブ ---
 local PlayerDropdown = TeleportTab:AddDropdown({
     Name = "Select Player", 
     Default = "None", 
@@ -190,7 +183,6 @@ end
 Players.PlayerAdded:Connect(RefreshDropdown)
 Players.PlayerRemoving:Connect(RefreshDropdown)
 
--- --- TPSトグル ---
 _G.O_TPSToggle = PlayerTab:AddToggle({ 
     Name = "Enable TPS (Max 500 Studs)", 
     Default = false, 
@@ -206,7 +198,6 @@ _G.O_TPSToggle = PlayerTab:AddToggle({
     end 
 })
 
--- --- テレポートボタン ---
 TeleportTab:AddButton({
     Name = "Teleport Behind Player",
     Callback = function()
@@ -221,7 +212,6 @@ TeleportTab:AddButton({
     end
 })
 
--- --- Defense タブ ---
 local RS = game:GetService("ReplicatedStorage")
 local R = game:GetService("RunService")
 local CE = RS:WaitForChild("CharacterEvents", 5) 
@@ -386,7 +376,6 @@ _G.O_BlobmanKickLoop = BlobmanTab:AddToggle({
     end
 })
 
--- --- 機能の常時ループ実行処理 ---
 task.spawn(function()
     while task.wait(0.1) do
         pcall(function()
@@ -416,9 +405,7 @@ game:GetService("UserInputService").JumpRequest:Connect(function()
     end
 end)
 
-
--- --- Save タブ ---
-local SaveTab = Window:MakeTab({ Name = "Save", Icon = "rbxassetid://7734053495", PremiumOnly = false })
+local SaveTab = Window:MakeTab({ Name = "Save", Icon = rbxassetid://7734053495 or "rbxassetid://7734053495", PremiumOnly = false })
 
 local HttpService = game:GetService("HttpService")
 local CONFIG_DIR = "TestHUB_Configs/" 
@@ -577,46 +564,25 @@ SaveTab:AddButton({
     end
 })
 
--- --- 【新規追加】Delete File ボタン ---
 SaveTab:AddButton({
     Name = "Delete File",
     Callback = function()
-        if not SelectedFileName or SelectedFileName == "" then 
-            OrionLibrary:MakeNotification({Name = "Error", Content = "削除するファイルをSelect Fileから選択してください", Time = 3})
-            return 
-        end
-        
-        if SelectedFileName == "default" then
-            OrionLibrary:MakeNotification({Name = "Warning", Content = "default ファイルは削除できません", Time = 3})
+        if not SelectedFileName or SelectedFileName == "" or SelectedFileName == "default" then
+            OrionLibrary:MakeNotification({Name = "Error", Content = "削除するカスタムファイルを選択してください（defaultは削除できません）", Time = 3})
             return
         end
 
-        if delfile or Psychiatric_delfile or deletefile then
+        if delfile then
             local filePath = CONFIG_DIR .. SelectedFileName .. ".json"
-            local deleteFunc = delfile or Psychiatric_delfile or deletefile
+            local success, err = pcall(function() delfile(filePath) end)
             
-            local fileExists = pcall(function() return readfile(filePath) end)
-            if fileExists then
-                local success = pcall(function() deleteFunc(filePath) end)
-                if success then
-                    -- 内部リストから削除
-                    for i, name in ipairs(SavedFilesList) do
-                        if name == SelectedFileName then
-                            table.remove(SavedFilesList, i)
-                            break
-                        end
-                    end
-                    
-                    OrionLibrary:MakeNotification({Name = "Deleted", Content = "ファイルを削除しました: " .. SelectedFileName, Time = 3})
-                    
-                    -- 選択状態をdefaultに戻してUI更新
-                    SelectedFileName = "default"
-                    FileDropdown:Refresh(SavedFilesList, true)
-                else
-                    OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルの削除に失敗しました", Time = 3})
-                end
+            if success then
+                SavedFilesList = GetSavedFiles()
+                SelectedFileName = "default"
+                FileDropdown:Refresh(SavedFilesList, true)
+                OrionLibrary:MakeNotification({Name = "Success", Content = "ファイルを削除しました", Time = 3})
             else
-                OrionLibrary:MakeNotification({Name = "Error", Content = "削除対象のファイルが見つかりません", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルの削除に失敗しました", Time = 3})
             end
         else
             OrionLibrary:MakeNotification({Name = "Error", Content = "Executorがファイルの削除に対応していません", Time = 3})
@@ -626,6 +592,5 @@ SaveTab:AddButton({
 
 OrionLibrary:Init()
 
--- UI構築完了後に安全弁を解除
 task.wait(0.1)
 IsLoadingConfig = false
