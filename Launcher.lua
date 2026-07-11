@@ -32,7 +32,7 @@ if game:GetService("CoreGui"):FindFirstChild("UI_Launcher") then
 end
 
 -- [[ 🔗 あなたのGitHubのRaw URL（修正済みでそのまま動きます） ]]
-local ORION_SCRIPT_URL = "https://raw.githubusercontent.com/adayoooooooo/KTM_HUB/refs/heads/main/orion_ui.lua"
+local ORION_SCRIPT_URL = "https://raw.githubusercontent.com/adayoooooooo/KTM_HUB/refs/heads/main/orion_ui_en.lua"
 local RAYFIELD_SCRIPT_URL = "https://raw.githubusercontent.com/adayoooooooo/KTM_HUB/refs/heads/main/rayfield_ui.lua"
 
 -- [[ 🛑 共通グローバル変数宣言 ]]
