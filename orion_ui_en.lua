@@ -4,6 +4,28 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
+-- --- 1. 最初はすべて完全にオフ(デフォルト状態)に初期化 ---
+_G.WalkspeedOverride = false
+_G.SpeedMultiplier = 1
+_G.JumpPowerOverride = false
+_G.JumpMultiplier = 1
+_G.InfiniteJump = false
+_G.TPSToggle = false
+
+local FlyEnabled = false
+local FlySpeed = 16
+local FlyConnection = nil
+local BodyGyro = nil
+local BodyVelocity = nil
+
+local AntiExplosionEnabled = false
+local AntiGrabEnabled = false
+local AntiSitEnabled = false
+local BlobmanKickLoop = false    
+
+-- 起動時のUI構築による誤作動を防ぐフラグ
+local IsLoadingConfig = true 
+
 local Window = OrionLibrary:MakeWindow({
     Name = "(＃°Д°)HUB (FTAP)",
     HidePremium = false, 
@@ -24,31 +46,26 @@ end
 local SelectedPlayerName = ""      
 local SelectedBlobmanTarget = ""   
 
--- --- 自作Vfly用の変数 ---
-local FlyEnabled = false
-local FlySpeed = 16
-local FlyConnection = nil
-local BodyGyro = nil
-local BodyVelocity = nil
-
 -- --- タブ作成 ---
 local PlayerTab = Window:MakeTab({ Name = "Player", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = "rbxassetid://7733992829", PremiumOnly = false }) 
 local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = "rbxassetid://7734056608", PremiumOnly = false })
 local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 
--- --- Player タブ (既存機能 + 自作Vfly) ---
-PlayerTab:AddToggle({ Name = "WalkspeedOverride", Default = false, Callback = function(Value) _G.WalkspeedOverride = Value end })
-PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Callback = function(Value) _G.SpeedMultiplier = Value end })
-PlayerTab:AddToggle({ Name = "JumpPowerOverride", Default = false, Callback = function(Value) _G.JumpPowerOverride = Value end })
-PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Callback = function(Value) _G.JumpMultiplier = Value end })
-PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Callback = function(Value) _G.InfiniteJump = Value end })
+-- --- Player タブ ---
+_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "WalkspeedOverride", Default = false, Flag = "WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
+_G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
+_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "JumpPowerOverride", Default = false, Flag = "JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
+_G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })
+_G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Flag = "InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })
 
--- --- Vfly用コントロール (自動再搭乗・オブジェクト存在確認付き) ---
-PlayerTab:AddToggle({
+-- --- Vfly用コントロール ---
+_G.O_VflyToggle = PlayerTab:AddToggle({
     Name = "Vfly (Vehicle Fly)",
     Default = false,
+    Flag = "VflyToggle",
     Callback = function(Value)
+        if IsLoadingConfig then return end
         FlyEnabled = Value
         
         if FlyConnection then 
@@ -64,7 +81,6 @@ PlayerTab:AddToggle({
                 if not char then return end
                 
                 local humanoid = char:FindFirstChildOfClass("Humanoid")
-                -- 最初に座っているシートを記憶
                 local currentSeat = humanoid and humanoid.SeatPart
                 local targetPart = currentSeat or char:FindFirstChild("HumanoidRootPart")
                 
@@ -87,16 +103,12 @@ PlayerTab:AddToggle({
                         return
                     end
 
-                    -- 【新規追加】もしシートから降りてしまった場合の検知と自動再搭乗
                     if currentSeat and currentSeat.Parent then
                         if humanoid and humanoid.SeatPart == nil then
-                            -- 降りてしまった場合、一度乗り物の動きを安全に止める
                             BodyVelocity.velocity = Vector3.new(0, 0, 0)
                             targetPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                            
-                            -- オブジェクトがまだ存在するか、親が workspace 内にあるかを確認
                             if currentSeat:IsDescendantOf(workspace) then
-                                currentSeat:Sit(humanoid) -- 強制的に再搭乗
+                                currentSeat:Sit(humanoid) 
                             end
                         end
                     end
@@ -112,18 +124,10 @@ PlayerTab:AddToggle({
                     local UserInputService = game:GetService("UserInputService")
                     local direction = Vector3.new(0, 0, 0)
 
-                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                        direction = direction + cameraCFrame.LookVector
-                    end
-                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                        direction = direction - cameraCFrame.LookVector
-                    end
-                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                        direction = direction - cameraCFrame.RightVector
-                    end
-                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                        direction = direction + cameraCFrame.RightVector
-                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction = direction + cameraCFrame.LookVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction = direction - cameraCFrame.LookVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction = direction - cameraCFrame.RightVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction = direction + cameraCFrame.RightVector end
 
                     if direction.Magnitude > 0 then
                         BodyVelocity.velocity = direction.Unit * (16 * FlySpeed)
@@ -144,17 +148,12 @@ PlayerTab:AddToggle({
     end
 })
 
-PlayerTab:AddSlider({
+_G.O_FlySpeed = PlayerTab:AddSlider({
     Name = "Fly Speed",
-    Min = 1,
-    Max = 10,
-    Default = 1,
-    Color = Color3.fromRGB(255,255,255),
-    Increment = 1,
-    ValueName = "speed",
-    Callback = function(Value)
-        FlySpeed = Value
-    end
+    Min = 1, Max = 10, Default = 1,
+    Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "speed",
+    Flag = "FlySpeed",
+    Callback = function(Value) if not IsLoadingConfig then FlySpeed = Value end end
 })
 
 -- --- ドロップダウンデータ生成 ---
@@ -192,10 +191,12 @@ Players.PlayerAdded:Connect(RefreshDropdown)
 Players.PlayerRemoving:Connect(RefreshDropdown)
 
 -- --- TPSトグル ---
-PlayerTab:AddToggle({ 
+_G.O_TPSToggle = PlayerTab:AddToggle({ 
     Name = "Enable TPS (Max 500 Studs)", 
     Default = false, 
+    Flag = "TPSToggle",
     Callback = function(Value) 
+        if IsLoadingConfig then return end
         _G.TPSToggle = Value 
         if not Value and player then 
             player.CameraMode = Enum.CameraMode.Classic 
@@ -226,10 +227,6 @@ local R = game:GetService("RunService")
 local CE = RS:WaitForChild("CharacterEvents", 5) 
 local StruggleEvent = CE and CE:WaitForChild("Struggle", 5)
 local BeingHeld = player:WaitForChild("IsHeld", 5)
-
-local AntiExplosionEnabled = true
-local AntiGrabEnabled = true
-local AntiSitEnabled = true
 
 workspace.DescendantAdded:Connect(function(v) 
     if AntiExplosionEnabled and v:IsA("Explosion") then 
@@ -294,11 +291,9 @@ end
 if player.Character then task.spawn(reconnect, player.Character) end
 player.CharacterAdded:Connect(function(char) task.spawn(reconnect, char) end)
 
-DefenseTab:AddToggle({ Name = "Anti Explosion (No Knockback)", Default = true, Callback = function(Value) AntiExplosionEnabled = Value end })
-DefenseTab:AddToggle({ Name = "Anti Grab (Auto Struggle)", Default = true, Callback = function(Value) AntiGrabEnabled = Value end })
-DefenseTab:AddToggle({ Name = "Anti Sit (Auto Unsit)", Default = true, Callback = function(Value) AntiSitEnabled = Value end })
-
-local BlobmanKickLoop = false    
+_G.O_AntiExplosionEnabled = DefenseTab:AddToggle({ Name = "Anti Explosion (No Knockback)", Default = false, Flag = "AntiExplosionEnabled", Callback = function(Value) if not IsLoadingConfig then AntiExplosionEnabled = Value end end })
+_G.O_AntiGrabEnabled = DefenseTab:AddToggle({ Name = "Anti Grab (Auto Struggle)", Default = false, Flag = "AntiGrabEnabled", Callback = function(Value) if not IsLoadingConfig then AntiGrabEnabled = Value end end })
+_G.O_AntiSitEnabled = DefenseTab:AddToggle({ Name = "Anti Sit (Auto Unsit)", Default = false, Flag = "AntiSitEnabled", Callback = function(Value) if not IsLoadingConfig then AntiSitEnabled = Value end end })
 
 local SpawnToyRF = game:GetService("ReplicatedStorage"):WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
 local DeleteToyRE = game:GetService("ReplicatedStorage"):WaitForChild("MenuToys"):WaitForChild("DestroyToy")
@@ -335,10 +330,12 @@ BlobmanTab:AddButton({
     end
 })
 
-BlobmanTab:AddToggle({
+_G.O_BlobmanKickLoop = BlobmanTab:AddToggle({
     Name = "Blobman Spam Kick",
     Default = false,
+    Flag = "BlobmanKickLoop",
     Callback = function(Value)
+        if IsLoadingConfig then return end
         BlobmanKickLoop = Value
         
         if Value then
@@ -389,24 +386,50 @@ BlobmanTab:AddToggle({
     end
 })
 
--- --- Save タブ (JSONによる独自セーブ＆ロード) ---
+-- --- 機能の常時ループ実行処理 ---
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            local char = player.Character
+            if char and char:FindFirstChildOfClass("Humanoid") then
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if _G.WalkspeedOverride then
+                    humanoid.WalkSpeed = (_G.SpeedMultiplier or 1) * 16
+                end
+                if _G.JumpPowerOverride then
+                    humanoid.UseJumpPower = true
+                    humanoid.JumpPower = (_G.JumpMultiplier or 1) * 50
+                end
+            end
+        end)
+    end
+end)
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if _G.InfiniteJump then
+        pcall(function()
+            local char = player.Character
+            if char and char:FindFirstChildOfClass("Humanoid") then
+                char:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+            end
+        end)
+    end
+end)
+
+
+-- --- Save タブ ---
 local SaveTab = Window:MakeTab({ Name = "Save", Icon = "rbxassetid://7734053495", PremiumOnly = false })
 
 local HttpService = game:GetService("HttpService")
-local CONFIG_DIR = "TestHUB_Configs/" -- 保存するフォルダ名
+local CONFIG_DIR = "TestHUB_Configs/" 
 
--- フォルダがなければ作成 (Executorの機能)
-if makefolder then
-    pcall(function() makefolder(CONFIG_DIR) end)
-end
+if makefolder then pcall(function() makefolder(CONFIG_DIR) end) end
 
--- ファイル一覧を取得する関数
 local function GetSavedFiles()
     local files = {"default"}
     if listfiles then
         pcall(function()
             for _, path in ipairs(listfiles(CONFIG_DIR)) do
-                -- パスからファイル名だけを抽出 (.json を消す)
                 local name = path:match("([^/]+)%.json$") or path:match("([^\\]+)%.json$")
                 if name and name ~= "default" then
                     table.insert(files, name)
@@ -421,7 +444,6 @@ local SavedFilesList = GetSavedFiles()
 local SelectedFileName = "default"
 local InputFileNameText = ""
 
--- ファイル選択ドロップダウン
 local FileDropdown = SaveTab:AddDropdown({
     Name = "Select File",
     Default = "default",
@@ -431,9 +453,8 @@ local FileDropdown = SaveTab:AddDropdown({
     end
 })
 
--- ファイル名入力テキストボックス
 SaveTab:AddTextbox({
-    Name = "File Name Input",
+    Name = "File Name Input (New File Only)",
     Default = "",
     TextDisappear = false,
     Callback = function(Value)
@@ -441,73 +462,64 @@ SaveTab:AddTextbox({
     end
 })
 
--- New File ボタン (新規リスト追加)
 SaveTab:AddButton({
     Name = "New File",
     Callback = function()
         if InputFileNameText ~= "" then
             local exists = false
             for _, name in ipairs(SavedFilesList) do
-                if name == InputFileNameText then
-                    exists = true
-                    break
-                end
+                if name == InputFileNameText then exists = true break end
             end
             
             if not exists then
                 table.insert(SavedFilesList, InputFileNameText)
-                SelectedFileName = InputFileNameText
+                SelectedFileName = InputFileNameText 
                 FileDropdown:Refresh(SavedFilesList, true)
-                OrionLibrary:MakeNotification({Name = "Success", Content = "新規ファイル名を追加しました: " .. InputFileNameText, Time = 3})
+                OrionLibrary:MakeNotification({Name = "Success", Content = "新規ファイル名を登録しました。Select Fileから保存できます: " .. InputFileNameText, Time = 4})
             else
                 OrionLibrary:MakeNotification({Name = "Warning", Content = "その名前は既に存在します", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "ファイル名を入力してください", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "File Name Inputに名前を入力してください", Time = 3})
         end
     end
 })
 
--- Save File ボタン (writefile による独自保存)
 SaveTab:AddButton({
     Name = "Save File",
     Callback = function()
-        local finalSaveName = (InputFileNameText ~= "") and InputFileNameText or SelectedFileName
-        if not finalSaveName or finalSaveName == "" then return end
+        if not SelectedFileName or SelectedFileName == "" then 
+            OrionLibrary:MakeNotification({Name = "Error", Content = "保存するファイルをSelect Fileから選択してください", Time = 3})
+            return 
+        end
 
         if writefile then
             local configData = {}
-            -- OrionLibraryのFlagsから現在のUIの状態（トグルやスライダーの値）をすべて抽出
-            for flag, value in pairs(OrionLibrary.Flags) do
-                -- 型が保存可能なもの（bool, number, string等）だけを対象にする
-                if type(value) ~= "function" and type(value) ~= "table" then
-                    configData[flag] = value
+            local flagsToSave = {
+                "WalkspeedOverride", "SpeedMultiplier", "JumpPowerOverride", "JumpMultiplier", 
+                "InfiniteJump", "VflyToggle", "FlySpeed", "TPSToggle", 
+                "AntiExplosionEnabled", "AntiGrabEnabled", "AntiSitEnabled", "BlobmanKickLoop"
+            }
+            
+            for _, flag in ipairs(flagsToSave) do
+                if OrionLibrary.Flags[flag] ~= nil then
+                    configData[flag] = OrionLibrary.Flags[flag]
                 end
             end
 
             local success, jsonStr = pcall(function() return HttpService:JSONEncode(configData) end)
             if success then
-                writefile(CONFIG_DIR .. finalSaveName .. ".json", jsonStr)
-                
-                -- リストを更新
-                SavedFilesList = GetSavedFiles()
-                FileDropdown:Refresh(SavedFilesList, false)
-                
-                OrionLibrary:MakeNotification({
-                    Name = "Config Saved",
-                    Content = "設定を保存しました: " .. finalSaveName,
-                    Time = 3
-                })
+                writefile(CONFIG_DIR .. SelectedFileName .. ".json", jsonStr)
+                OrionLibrary:MakeNotification({Name = "Config Saved", Content = "設定を保存しました: " .. SelectedFileName, Time = 3})
             else
                 OrionLibrary:MakeNotification({Name = "Error", Content = "データの変換に失敗しました", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "お使いのExecutorはファイルの保存に対応していません", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Executorが書き込みに対応していません", Time = 3})
         end
     end
 })
 
--- Load File ボタン (readfile と OrionLibrary:ChangeValue による値の復元)
 SaveTab:AddButton({
     Name = "Load File",
     Callback = function()
@@ -515,7 +527,6 @@ SaveTab:AddButton({
 
         if readfile then
             local filePath = CONFIG_DIR .. SelectedFileName .. ".json"
-            -- ファイルが存在するか確認
             local fileExists = pcall(function() return readfile(filePath) end)
             
             if fileExists then
@@ -523,35 +534,98 @@ SaveTab:AddButton({
                 local success, configData = pcall(function() return HttpService:JSONDecode(jsonStr) end)
                 
                 if success and type(configData) == "table" then
-                    -- 保存されたデータをOrionのUIに反映させる
-                    for flag, value in pairs(configData) do
-                        pcall(function()
-                            -- Orionの各パーツに値をセットし、Callbackを実行させる
-                            OrionLibrary.Flags[flag] = value
-                            -- UI上の見た目を更新するOrionの内部関数を呼び出す
-                            local options = OrionLibrary.Flags[flag]
-                            -- 各トグルやスライダーに登録されたフラグへ値を強制代入
-                            if OrionLibrary.Objects[flag] then
-                                OrionLibrary.Objects[flag]:Set(value)
-                            end
-                        end)
-                    end
+                    IsLoadingConfig = true
                     
-                    OrionLibrary:MakeNotification({
-                        Name = "Config Loaded",
-                        Content = "設定を読み込みました: " .. SelectedFileName,
-                        Time = 3
-                    })
+                    if configData["WalkspeedOverride"] ~= nil then _G.WalkspeedOverride = configData["WalkspeedOverride"] end
+                    if configData["SpeedMultiplier"] ~= nil then _G.SpeedMultiplier = configData["SpeedMultiplier"] end
+                    if configData["JumpPowerOverride"] ~= nil then _G.JumpPowerOverride = configData["JumpPowerOverride"] end
+                    if configData["JumpMultiplier"] ~= nil then _G.JumpMultiplier = configData["JumpMultiplier"] end
+                    if configData["InfiniteJump"] ~= nil then _G.InfiniteJump = configData["InfiniteJump"] end
+                    if configData["TPSToggle"] ~= nil then _G.TPSToggle = configData["TPSToggle"] end
+                    if configData["FlySpeed"] ~= nil then FlySpeed = configData["FlySpeed"] end
+                    if configData["AntiExplosionEnabled"] ~= nil then AntiExplosionEnabled = configData["AntiExplosionEnabled"] end
+                    if configData["AntiGrabEnabled"] ~= nil then AntiGrabEnabled = configData["AntiGrabEnabled"] end
+                    if configData["AntiSitEnabled"] ~= nil then AntiSitEnabled = configData["AntiSitEnabled"] end
+
+                    pcall(function() if _G.O_WalkspeedOverride and configData["WalkspeedOverride"] ~= nil then _G.O_WalkspeedOverride:Set(configData["WalkspeedOverride"]) end end)
+                    pcall(function() if _G.O_SpeedMultiplier and configData["SpeedMultiplier"] ~= nil then _G.O_SpeedMultiplier:Set(configData["SpeedMultiplier"]) end end)
+                    pcall(function() if _G.O_JumpPowerOverride and configData["JumpPowerOverride"] ~= nil then _G.O_JumpPowerOverride:Set(configData["JumpPowerOverride"]) end end)
+                    pcall(function() if _G.O_JumpMultiplier and configData["JumpMultiplier"] ~= nil then _G.O_JumpMultiplier:Set(configData["JumpMultiplier"]) end end)
+                    pcall(function() if _G.O_InfiniteJump and configData["InfiniteJump"] ~= nil then _G.O_InfiniteJump:Set(configData["InfiniteJump"]) end end)
+                    pcall(function() if _G.O_VflyToggle and configData["VflyToggle"] ~= nil then _G.O_VflyToggle:Set(configData["VflyToggle"]) end end)
+                    pcall(function() if _G.O_FlySpeed and configData["FlySpeed"] ~= nil then _G.O_FlySpeed:Set(configData["FlySpeed"]) end end)
+                    pcall(function() if _G.O_TPSToggle and configData["TPSToggle"] ~= nil then _G.O_TPSToggle:Set(configData["TPSToggle"]) end end)
+                    
+                    pcall(function() if _G.O_AntiExplosionEnabled and configData["AntiExplosionEnabled"] ~= nil then _G.O_AntiExplosionEnabled:Set(configData["AntiExplosionEnabled"]) end end)
+                    pcall(function() if _G.O_AntiGrabEnabled and configData["AntiGrabEnabled"] ~= nil then _G.O_AntiGrabEnabled:Set(configData["AntiGrabEnabled"]) end end)
+                    pcall(function() if _G.O_AntiSitEnabled and configData["AntiSitEnabled"] ~= nil then _G.O_AntiSitEnabled:Set(configData["AntiSitEnabled"]) end end)
+                    pcall(function() if _G.O_BlobmanKickLoop and configData["BlobmanKickLoop"] ~= nil then _G.O_BlobmanKickLoop:Set(configData["BlobmanKickLoop"]) end end)
+                    
+                    task.wait(0.05)
+                    IsLoadingConfig = false
+                    
+                    OrionLibrary:MakeNotification({ Name = "Config Loaded", Content = "設定を読み込みました: " .. SelectedFileName, Time = 3 })
                 else
-                    OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルの読み込みに失敗しました", Time = 3})
+                    OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルの解析に失敗しました", Time = 3})
                 end
             else
-                OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルが見つかりません (一度Saveしてください)", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルが存在しません", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "お使いのExecutorはファイルの読み込みに対応していません", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Executorが読み込みに対応していません", Time = 3})
+        end
+    end
+})
+
+-- --- 【新規追加】Delete File ボタン ---
+SaveTab:AddButton({
+    Name = "Delete File",
+    Callback = function()
+        if not SelectedFileName or SelectedFileName == "" then 
+            OrionLibrary:MakeNotification({Name = "Error", Content = "削除するファイルをSelect Fileから選択してください", Time = 3})
+            return 
+        end
+        
+        if SelectedFileName == "default" then
+            OrionLibrary:MakeNotification({Name = "Warning", Content = "default ファイルは削除できません", Time = 3})
+            return
+        end
+
+        if delfile or Psychiatric_delfile or deletefile then
+            local filePath = CONFIG_DIR .. SelectedFileName .. ".json"
+            local deleteFunc = delfile or Psychiatric_delfile or deletefile
+            
+            local fileExists = pcall(function() return readfile(filePath) end)
+            if fileExists then
+                local success = pcall(function() deleteFunc(filePath) end)
+                if success then
+                    -- 内部リストから削除
+                    for i, name in ipairs(SavedFilesList) do
+                        if name == SelectedFileName then
+                            table.remove(SavedFilesList, i)
+                            break
+                        end
+                    end
+                    
+                    OrionLibrary:MakeNotification({Name = "Deleted", Content = "ファイルを削除しました: " .. SelectedFileName, Time = 3})
+                    
+                    -- 選択状態をdefaultに戻してUI更新
+                    SelectedFileName = "default"
+                    FileDropdown:Refresh(SavedFilesList, true)
+                else
+                    OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルの削除に失敗しました", Time = 3})
+                end
+            else
+                OrionLibrary:MakeNotification({Name = "Error", Content = "削除対象のファイルが見つかりません", Time = 3})
+            end
+        else
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Executorがファイルの削除に対応していません", Time = 3})
         end
     end
 })
 
 OrionLibrary:Init()
+
+-- UI構築完了後に安全弁を解除
+task.wait(0.1)
+IsLoadingConfig = false
