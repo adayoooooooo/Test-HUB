@@ -37,20 +37,22 @@ local textChannels = TextChatService:FindFirstChild("TextChannels")
 local generalChannel = textChannels and textChannels:FindFirstChild("RBXGeneral")
 
 if generalChannel then
-    generalChannel:SendAsync("(＃°Д°)HUB(公開鯖テスト中)起動完了(•ω•)")
+    generalChannel:SendAsync("(＃°Д°)HUB by Creator Tester, Beginner Cheater (Public Server Testing) Load Complete(•ω•)")
 end
 
 local SelectedPlayerName = ""      
 local SelectedBlobmanTarget = ""   
 
-local PlayerTab = Window:MakeTab({ Name = "Player", Icon = rbxassetid://13585613884 or "rbxassetid://13585613884", PremiumOnly = false })
-local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = rbxassetid://7733992829 or "rbxassetid://7733992829", PremiumOnly = false }) 
-local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = rbxassetid://7734056608 or "rbxassetid://7734056608", PremiumOnly = false })
-local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = rbxassetid://13585613884 or "rbxassetid://13585613884", PremiumOnly = false })
+local otherlanguage = Window:MakeTab({ Name = "Otherlanguages", Icon = "rbxassetid://93278098923938", PremiumOnly = false})
+local PlayerTab = Window:MakeTab({ Name = "Player", Icon = "rbxassetid://13585613884", PremiumOnly = false })
+local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = "rbxassetid://7733992829", PremiumOnly = false }) 
+local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = "rbxassetid://7734056608", PremiumOnly = false })
+local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 
-_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "WalkspeedOverride", Default = false, Flag = "WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
+otherlanguage:AddButton({Name = "Boot Japanese Version", Callback = function()end})
+_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "Walkspeed Override", Default = false, Flag = "WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
 _G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
-_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "JumpPowerOverride", Default = false, Flag = "JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
+_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "Jump Power Override", Default = false, Flag = "JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
 _G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })
 _G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Flag = "InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })
 
@@ -329,13 +331,13 @@ _G.O_BlobmanKickLoop = BlobmanTab:AddToggle({
         
         if Value then
             if SelectedBlobmanTarget == "" then 
-                OrionLibrary:MakeNotification({Name = "Error", Content = "対象プレイヤーを選択してください", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Error", Content = "Please select a target player.", Time = 3})
                 return 
             end
             
             local targetPlayer = Players:FindFirstChild(SelectedBlobmanTarget)
             if not targetPlayer or not targetPlayer.Character then 
-                OrionLibrary:MakeNotification({Name = "Error", Content = "対象プレイヤーが見つかりません", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Error", Content = "Target player not found.", Time = 3})
                 return 
             end
 
@@ -404,7 +406,7 @@ game:GetService("UserInputService").JumpRequest:Connect(function()
     end
 end)
 
-local SaveTab = Window:MakeTab({ Name = "Save", Icon = rbxassetid://7734053495 or "rbxassetid://7734053495", PremiumOnly = false })
+local SaveTab = Window:MakeTab({ Name = "Save", Icon = "rbxassetid://7734053495", PremiumOnly = false })
 
 local HttpService = game:GetService("HttpService")
 local CONFIG_DIR = "TestHUB_Configs/" 
@@ -461,12 +463,12 @@ SaveTab:AddButton({
                 table.insert(SavedFilesList, InputFileNameText)
                 SelectedFileName = InputFileNameText 
                 FileDropdown:Refresh(SavedFilesList, true)
-                OrionLibrary:MakeNotification({Name = "Success", Content = "新規ファイル名を登録しました。Select Fileから保存できます: " .. InputFileNameText, Time = 4})
+                OrionLibrary:MakeNotification({Name = "Success", Content = "Registered new file name. You can save from Select File: " .. InputFileNameText, Time = 4})
             else
-                OrionLibrary:MakeNotification({Name = "Warning", Content = "その名前は既に存在します", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Warning", Content = "That name already exists.", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "File Name Inputに名前を入力してください", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Please enter a name in the File Name Input.", Time = 3})
         end
     end
 })
@@ -475,7 +477,7 @@ SaveTab:AddButton({
     Name = "Save File",
     Callback = function()
         if not SelectedFileName or SelectedFileName == "" then 
-            OrionLibrary:MakeNotification({Name = "Error", Content = "保存するファイルをSelect Fileから選択してください", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Please select a file to save from Select File.", Time = 3})
             return 
         end
 
@@ -496,12 +498,12 @@ SaveTab:AddButton({
             local success, jsonStr = pcall(function() return HttpService:JSONEncode(configData) end)
             if success then
                 writefile(CONFIG_DIR .. SelectedFileName .. ".json", jsonStr)
-                OrionLibrary:MakeNotification({Name = "Config Saved", Content = "設定を保存しました: " .. SelectedFileName, Time = 3})
+                OrionLibrary:MakeNotification({Name = "Config Saved", Content = "Configuration saved: " .. SelectedFileName, Time = 3})
             else
-                OrionLibrary:MakeNotification({Name = "Error", Content = "データの変換に失敗しました", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Error", Content = "Failed to convert data.", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Executorが書き込みに対応していません", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Executor does not support writing files.", Time = 3})
         end
     end
 })
@@ -550,15 +552,15 @@ SaveTab:AddButton({
                     task.wait(0.05)
                     IsLoadingConfig = false
                     
-                    OrionLibrary:MakeNotification({ Name = "Config Loaded", Content = "設定を読み込みました: " .. SelectedFileName, Time = 3 })
+                    OrionLibrary:MakeNotification({ Name = "Config Loaded", Content = "Configuration loaded: " .. SelectedFileName, Time = 3 })
                 else
-                    OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルの解析に失敗しました", Time = 3})
+                    OrionLibrary:MakeNotification({Name = "Error", Content = "Failed to parse file.", Time = 3})
                 end
             else
-                OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルが存在しません", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Error", Content = "File does not exist.", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Executorが読み込みに対応していません", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Executor does not support reading files.", Time = 3})
         end
     end
 })
@@ -567,7 +569,7 @@ SaveTab:AddButton({
     Name = "Delete File",
     Callback = function()
         if not SelectedFileName or SelectedFileName == "" or SelectedFileName == "default" then
-            OrionLibrary:MakeNotification({Name = "Error", Content = "削除するカスタムファイルを選択してください（defaultは削除できません）", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Please select a custom file to delete ('default' cannot be deleted).", Time = 3})
             return
         end
 
@@ -579,12 +581,12 @@ SaveTab:AddButton({
                 SavedFilesList = GetSavedFiles()
                 SelectedFileName = "default"
                 FileDropdown:Refresh(SavedFilesList, true)
-                OrionLibrary:MakeNotification({Name = "Success", Content = "ファイルを削除しました", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Success", Content = "File deleted successfully.", Time = 3})
             else
-                OrionLibrary:MakeNotification({Name = "Error", Content = "ファイルの削除に失敗しました", Time = 3})
+                OrionLibrary:MakeNotification({Name = "Error", Content = "Failed to delete file.", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Executorがファイルの削除に対応していません", Time = 3})
+            OrionLibrary:MakeNotification({Name = "Error", Content = "Executor does not support deleting files.", Time = 3})
         end
     end
 })
