@@ -43,21 +43,21 @@ end
 local SelectedPlayerName = ""      
 local SelectedBlobmanTarget = ""   
 
-local otherlanguage = Window:MakeTab({ Name = "Otherlanguages", Icon = "rbxassetid://93278098923938", PremiumOnly = false})
-local PlayerTab = Window:MakeTab({ Name = "Player", Icon = "rbxassetid://13585613884", PremiumOnly = false })
-local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = "rbxassetid://7733992829", PremiumOnly = false }) 
-local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = "rbxassetid://7734056608", PremiumOnly = false })
+local otherlanguage = Window:MakeTab({ Name = "OtherLanguage", Icon = "rbxassetid://93278098923938", PremiumOnly = false})
+local PlayerTab = Window:MakeTab({ Name = "プレイヤー", Icon = "rbxassetid://13585613884", PremiumOnly = false })
+local TeleportTab = Window:MakeTab({ Name = "テレポート", Icon = "rbxassetid://7733992829", PremiumOnly = false }) 
+local DefenseTab = Window:MakeTab({ Name = "防衛", Icon = "rbxassetid://7734056608", PremiumOnly = false })
 local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 
-otherlanguage:AddButton({Name = "JP版起動", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/adayoooooooo/Test-HUB/refs/heads/main/orion_ui_jp.lua"))() end})
-_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "Walkspeed Override", Default = false, Flag = "Flag_WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
-_G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "Flag_SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
-_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "Jump Power Override", Default = false, Flag = "Flag_JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
-_G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "Flag_JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })
-_G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Flag = "Flag_InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })
+otherlanguage:AddButton({Name = "Launch English version", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/adayoooooooo/Test-HUB/refs/heads/main/orion_ui_en.lua"))() end})
+_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "歩行速度変更 (Walkspeed)", Default = false, Flag = "Flag_WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
+_G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "速度倍率", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "Flag_SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
+_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "ジャンプ力変更 (JumpPower)", Default = false, Flag = "Flag_JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
+_G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "ジャンプ力倍率", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "Flag_JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })
+_G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "無限ジャンプ", Default = false, Flag = "Flag_InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })
 
 _G.O_VflyToggle = PlayerTab:AddToggle({
-    Name = "Vfly (Vehicle Fly)",
+    Name = "Vfly (乗り物飛行)",
     Default = false,
     Flag = "Flag_VflyToggle",
     Callback = function(Value)
@@ -145,7 +145,7 @@ _G.O_VflyToggle = PlayerTab:AddToggle({
 })
 
 _G.O_FlySpeed = PlayerTab:AddSlider({
-    Name = "Fly Speed",
+    Name = "飛行速度",
     Min = 1, Max = 10, Default = 1,
     Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "speed",
     Flag = "Flag_FlySpeed",
@@ -168,8 +168,8 @@ end
 local currentDisplayList, currentNameMap = GetPlayerDropdownData()
 
 local PlayerDropdown = TeleportTab:AddDropdown({
-    Name = "Select Player", 
-    Default = "None", 
+    Name = "プレイヤーを選択", 
+    Default = "なし", 
     Options = currentDisplayList,
     Callback = function(Value) 
         SelectedPlayerName = currentNameMap[Value] or "" 
@@ -185,7 +185,7 @@ Players.PlayerAdded:Connect(RefreshDropdown)
 Players.PlayerRemoving:Connect(RefreshDropdown)
 
 _G.O_TPSToggle = PlayerTab:AddToggle({ 
-    Name = "Enable TPS (Max 500 Studs)", 
+    Name = "TPS視点を有効化 (最大500スタッド)", 
     Default = false, 
     Flag = "Flag_TPSToggle",
     Callback = function(Value) 
@@ -200,7 +200,7 @@ _G.O_TPSToggle = PlayerTab:AddToggle({
 })
 
 TeleportTab:AddButton({
-    Name = "Teleport Behind Player",
+    Name = "プレイヤーの背後にテレポート",
     Callback = function()
         if SelectedPlayerName ~= "" then
             local targetPlayer = Players:FindFirstChild(SelectedPlayerName)
@@ -282,9 +282,9 @@ end
 if player.Character then task.spawn(reconnect, player.Character) end
 player.CharacterAdded:Connect(function(char) task.spawn(reconnect, char) end)
 
-_G.O_AntiExplosionEnabled = DefenseTab:AddToggle({ Name = "Anti Explosion (No Knockback)", Default = false, Flag = "Flag_AntiExplosionEnabled", Callback = function(Value) if not IsLoadingConfig then AntiExplosionEnabled = Value end end })
-_G.O_AntiGrabEnabled = DefenseTab:AddToggle({ Name = "Anti Grab (Auto Struggle)", Default = false, Flag = "Flag_AntiGrabEnabled", Callback = function(Value) if not IsLoadingConfig then AntiGrabEnabled = Value end end })
-_G.O_AntiSitEnabled = DefenseTab:AddToggle({ Name = "Anti Sit (Auto Unsit)", Default = false, Flag = "Flag_AntiSitEnabled", Callback = function(Value) if not IsLoadingConfig then AntiSitEnabled = Value end end })
+_G.O_AntiExplosionEnabled = DefenseTab:AddToggle({ Name = "アンチエクスプロージョン (ノックバック無効)", Default = false, Flag = "Flag_AntiExplosionEnabled", Callback = function(Value) if not IsLoadingConfig then AntiExplosionEnabled = Value end end })
+_G.O_AntiGrabEnabled = DefenseTab:AddToggle({ Name = "アンチグラブ (自動もがき)", Default = false, Flag = "Flag_AntiGrabEnabled", Callback = function(Value) if not IsLoadingConfig then AntiGrabEnabled = Value end end })
+_G.O_AntiSitEnabled = DefenseTab:AddToggle({ Name = "アンチシット (自動立ち上がり)", Default = false, Flag = "Flag_AntiSitEnabled", Callback = function(Value) if not IsLoadingConfig then AntiSitEnabled = Value end end })
 
 local SpawnToyRF = game:GetService("ReplicatedStorage"):WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
 local DeleteToyRE = game:GetService("ReplicatedStorage"):WaitForChild("MenuToys"):WaitForChild("DestroyToy")
@@ -304,8 +304,8 @@ end
 local bDisplayList, bNameMap = GetBlobmanDropdownData()
 
 local BlobmanTargetDropdown = BlobmanTab:AddDropdown({
-    Name = "Select Target Player", 
-    Default = "None", 
+    Name = "対象のプレイヤーを選択", 
+    Default = "なし", 
     Options = bDisplayList,
     Callback = function(Value) 
         SelectedBlobmanTarget = bNameMap[Value] or "" 
@@ -313,7 +313,7 @@ local BlobmanTargetDropdown = BlobmanTab:AddDropdown({
 })
 
 BlobmanTab:AddButton({
-    Name = "Refresh Player List",
+    Name = "プレイヤーリストを更新",
     Callback = function()
         local newList, newMap = GetBlobmanDropdownData()
         bNameMap = newMap
@@ -322,7 +322,7 @@ BlobmanTab:AddButton({
 })
 
 _G.O_BlobmanKickLoop = BlobmanTab:AddToggle({
-    Name = "Blobman Spam Kick",
+    Name = "Blobman スパムキック",
     Default = false,
     Flag = "Flag_BlobmanKickLoop",
     Callback = function(Value)
@@ -331,13 +331,13 @@ _G.O_BlobmanKickLoop = BlobmanTab:AddToggle({
         
         if Value then
             if SelectedBlobmanTarget == "" then 
-                OrionLibrary:MakeNotification({Name = "Error", Content = "Please select a target player.", Time = 3})
+                OrionLibrary:MakeNotification({Name = "エラー", Content = "対象プレイヤーを選択してください", Time = 3})
                 return 
             end
             
             local targetPlayer = Players:FindFirstChild(SelectedBlobmanTarget)
             if not targetPlayer or not targetPlayer.Character then 
-                OrionLibrary:MakeNotification({Name = "Error", Content = "Target player not found.", Time = 3})
+                OrionLibrary:MakeNotification({Name = "エラー", Content = "対象プレイヤーが見つかりません", Time = 3})
                 return 
             end
 
@@ -406,7 +406,7 @@ game:GetService("UserInputService").JumpRequest:Connect(function()
     end
 end)
 
-local SaveTab = Window:MakeTab({ Name = "Save", Icon = "rbxassetid://7734053495", PremiumOnly = false })
+local SaveTab = Window:MakeTab({ Name = "セーブ", Icon = "rbxassetid://7734053495", PremiumOnly = false })
 
 local HttpService = game:GetService("HttpService")
 local CONFIG_DIR = "TestHUB_Configs/" 
@@ -433,7 +433,7 @@ local SelectedFileName = "default"
 local InputFileNameText = ""
 
 local FileDropdown = SaveTab:AddDropdown({
-    Name = "Select File",
+    Name = "ファイルを選択",
     Default = "default",
     Options = SavedFilesList,
     Callback = function(Value)
@@ -442,7 +442,7 @@ local FileDropdown = SaveTab:AddDropdown({
 })
 
 SaveTab:AddTextbox({
-    Name = "File Name Input (New File Only)",
+    Name = "ファイル名入力 (新規ファイルのみ)",
     Default = "",
     TextDisappear = false,
     Callback = function(Value)
@@ -451,7 +451,7 @@ SaveTab:AddTextbox({
 })
 
 SaveTab:AddButton({
-    Name = "New File",
+    Name = "新規ファイル作成",
     Callback = function()
         if InputFileNameText ~= "" then
             local exists = false
@@ -463,21 +463,21 @@ SaveTab:AddButton({
                 table.insert(SavedFilesList, InputFileNameText)
                 SelectedFileName = InputFileNameText 
                 FileDropdown:Refresh(SavedFilesList, true)
-                OrionLibrary:MakeNotification({Name = "Success", Content = "Registered new file name. You can save from Select File: " .. InputFileNameText, Time = 4})
+                OrionLibrary:MakeNotification({Name = "成功", Content = "新規ファイル名を登録しました。「ファイルを選択」から保存できます: " .. InputFileNameText, Time = 4})
             else
-                OrionLibrary:MakeNotification({Name = "Warning", Content = "That name already exists.", Time = 3})
+                OrionLibrary:MakeNotification({Name = "警告", Content = "その名前は既に存在します", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Please enter a name in the File Name Input.", Time = 3})
+            OrionLibrary:MakeNotification({Name = "エラー", Content = "ファイル名入力欄に名前を入力してください", Time = 3})
         end
     end
 })
 
 SaveTab:AddButton({
-    Name = "Save File",
+    Name = "ファイルを保存",
     Callback = function()
         if not SelectedFileName or SelectedFileName == "" then 
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Please select a file to save from Select File.", Time = 3})
+            OrionLibrary:MakeNotification({Name = "エラー", Content = "保存するファイルを「ファイルを選択」から選択してください", Time = 3})
             return 
         end
 
@@ -499,18 +499,18 @@ SaveTab:AddButton({
             local success, jsonStr = pcall(function() return HttpService:JSONEncode(configData) end)
             if success then
                 writefile(CONFIG_DIR .. SelectedFileName .. ".json", jsonStr)
-                OrionLibrary:MakeNotification({Name = "Config Saved", Content = "Configuration saved: " .. SelectedFileName, Time = 3})
+                OrionLibrary:MakeNotification({Name = "設定保存完了", Content = "設定を保存しました: " .. SelectedFileName, Time = 3})
             else
-                OrionLibrary:MakeNotification({Name = "Error", Content = "Failed to convert data.", Time = 3})
+                OrionLibrary:MakeNotification({Name = "エラー", Content = "データの変換に失敗しました", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Executor does not support writing files.", Time = 3})
+            OrionLibrary:MakeNotification({Name = "エラー", Content = "エグゼキューターがファイル書き込みに対応していません", Time = 3})
         end
     end
 })
 
 SaveTab:AddButton({
-    Name = "Load File",
+    Name = "ファイルを読み込み",
     Callback = function()
         if not SelectedFileName or SelectedFileName == "" then return end
 
@@ -553,24 +553,24 @@ SaveTab:AddButton({
                     task.wait(0.05)
                     IsLoadingConfig = false
                     
-                    OrionLibrary:MakeNotification({ Name = "Config Loaded", Content = "Configuration loaded: " .. SelectedFileName, Time = 3 })
+                    OrionLibrary:MakeNotification({ Name = "設定読み込み完了", Content = "設定を読み込みました: " .. SelectedFileName, Time = 3 })
                 else
-                    OrionLibrary:MakeNotification({Name = "Error", Content = "Failed to parse file.", Time = 3})
+                    OrionLibrary:MakeNotification({Name = "エラー", Content = "ファイルの解析に失敗しました", Time = 3})
                 end
             else
-                OrionLibrary:MakeNotification({Name = "Error", Content = "File does not exist.", Time = 3})
+                OrionLibrary:MakeNotification({Name = "エラー", Content = "ファイルが存在しません", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Executor does not support reading files.", Time = 3})
+            OrionLibrary:MakeNotification({Name = "エラー", Content = "エグゼキューターがファイル読み込みに対応していません", Time = 3})
         end
     end
 })
 
 SaveTab:AddButton({
-    Name = "Delete File",
+    Name = "ファイルを削除",
     Callback = function()
         if not SelectedFileName or SelectedFileName == "" or SelectedFileName == "default" then
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Please select a custom file to delete ('default' cannot be deleted).", Time = 3})
+            OrionLibrary:MakeNotification({Name = "エラー", Content = "削除するカスタムファイルを選択してください（'default'は削除できません）", Time = 3})
             return
         end
 
@@ -582,12 +582,12 @@ SaveTab:AddButton({
                 SavedFilesList = GetSavedFiles()
                 SelectedFileName = "default"
                 FileDropdown:Refresh(SavedFilesList, true)
-                OrionLibrary:MakeNotification({Name = "Success", Content = "File deleted successfully.", Time = 3})
+                OrionLibrary:MakeNotification({Name = "成功", Content = "ファイルを正常に削除しました", Time = 3})
             else
-                OrionLibrary:MakeNotification({Name = "Error", Content = "Failed to delete file.", Time = 3})
+                OrionLibrary:MakeNotification({Name = "エラー", Content = "ファイルの削除に失敗しました", Time = 3})
             end
         else
-            OrionLibrary:MakeNotification({Name = "Error", Content = "Executor does not support deleting files.", Time = 3})
+            OrionLibrary:MakeNotification({Name = "エラー", Content = "エグゼキューターがファイルの削除に対応していません", Time = 3})
         end
     end
 })
