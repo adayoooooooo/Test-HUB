@@ -185,7 +185,7 @@ Players.PlayerAdded:Connect(RefreshDropdown)
 Players.PlayerRemoving:Connect(RefreshDropdown)
 
 _G.O_TPSToggle = PlayerTab:AddToggle({ 
-    Name = "TPS視点を有効化 (最大500スタッド)", 
+    Name = "三人称視点を有効化 (最大500スタッド)", 
     Default = false, 
     Flag = "TPSToggle",
     Callback = function(Value) 
