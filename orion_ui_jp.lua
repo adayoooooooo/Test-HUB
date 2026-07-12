@@ -32,13 +32,17 @@ local Window = OrionLibrary:MakeWindow({
     FreeMouse = true
 })
 
-local TextChatService = game:GetService("TextChatService")
-local textChannels = TextChatService:FindFirstChild("TextChannels")
-local generalChannel = textChannels and textChannels:FindFirstChild("RBXGeneral")
+-- 💡 他言語から起動された（_G.SkipChatLog が true）場合はチャットを送らない
+if not _G.SkipChatLog then
+    local TextChatService = game:GetService("TextChatService")
+    local textChannels = TextChatService:FindFirstChild("TextChannels")
+    local generalChannel = textChannels and textChannels:FindFirstChild("RBXGeneral")
 
-if generalChannel then
-    generalChannel:SendAsync("(＃°Д°)HUB by 自作テスター,初心者チーター(公開鯖テスト)起動完了(•ω•)")
+    if generalChannel then
+        generalChannel:SendAsync("(＃°Д°)HUB by 自作テスター,初心者チーター(公開鯖テスト)起動完了(•ω•)")
+    end
 end
+_G.SkipChatLog = nil -- 次回のためにリセット
 
 local SelectedPlayerName = ""      
 local SelectedBlobmanTarget = ""   
@@ -49,17 +53,18 @@ local TeleportTab = Window:MakeTab({ Name = "テレポート", Icon = "rbxasseti
 local DefenseTab = Window:MakeTab({ Name = "防衛", Icon = "rbxassetid://7734056608", PremiumOnly = false })
 local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 
-otherlanguage:AddButton({Name = "Launch English version", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/adayoooooooo/Test-HUB/refs/heads/main/orion_ui_en.lua"))() end})
-_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "歩行速度変更 (Walkspeed)", Default = false, Flag = "WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
-_G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "速度倍率", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
-_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "ジャンプ力変更 (JumpPower)", Default = false, Flag = "JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
-_G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "ジャンプ力倍率", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })
-_G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "無限ジャンプ", Default = false, Flag = "InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })
+-- 💡 ボタンを押した時は目印を true にしてから読み込む
+otherlanguage:AddButton({Name = "Launch English version", Callback = function() _G.SkipChatLog = true loadstring(game:HttpGet("https://raw.githubusercontent.com/adayoooooooo/Test-HUB/refs/heads/main/orion_ui_en.lua"))() end})
+_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "歩行速度変更 (Walkspeed)", Default = false, Flag = "Flag_WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })[cite: 2]
+_G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "速度倍率", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "Flag_SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })[cite: 2]
+_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "ジャンプ力変更 (JumpPower)", Default = false, Flag = "Flag_JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })[cite: 2]
+_G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "ジャンプ力倍率", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "Flag_JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })[cite: 2]
+_G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "無限ジャンプ", Default = false, Flag = "Flag_InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })[cite: 2]
 
 _G.O_VflyToggle = PlayerTab:AddToggle({
     Name = "Vfly (乗り物飛行)",
     Default = false,
-    Flag = "VflyToggle",
+    Flag = "Flag_VflyToggle",
     Callback = function(Value)
         if IsLoadingConfig then return end
         FlyEnabled = Value
@@ -148,7 +153,7 @@ _G.O_FlySpeed = PlayerTab:AddSlider({
     Name = "飛行速度",
     Min = 1, Max = 10, Default = 1,
     Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "speed",
-    Flag = "FlySpeed",
+    Flag = "Flag_FlySpeed",
     Callback = function(Value) if not IsLoadingConfig then FlySpeed = Value end end
 })
 
@@ -185,9 +190,9 @@ Players.PlayerAdded:Connect(RefreshDropdown)
 Players.PlayerRemoving:Connect(RefreshDropdown)
 
 _G.O_TPSToggle = PlayerTab:AddToggle({ 
-    Name = "三人称視点を有効化 (最大500スタッド)", 
+    Name = "TPS視点を有効化 (最大500スタッド)", 
     Default = false, 
-    Flag = "TPSToggle",
+    Flag = "Flag_TPSToggle",
     Callback = function(Value) 
         if IsLoadingConfig then return end
         _G.TPSToggle = Value 
@@ -282,9 +287,9 @@ end
 if player.Character then task.spawn(reconnect, player.Character) end
 player.CharacterAdded:Connect(function(char) task.spawn(reconnect, char) end)
 
-_G.O_AntiExplosionEnabled = DefenseTab:AddToggle({ Name = "アンチエクスプロージョン (ノックバック無効)", Default = false, Flag = "AntiExplosionEnabled", Callback = function(Value) if not IsLoadingConfig then AntiExplosionEnabled = Value end end })
-_G.O_AntiGrabEnabled = DefenseTab:AddToggle({ Name = "アンチグラブ (自動もがき)", Default = false, Flag = "AntiGrabEnabled", Callback = function(Value) if not IsLoadingConfig then AntiGrabEnabled = Value end end })
-_G.O_AntiSitEnabled = DefenseTab:AddToggle({ Name = "アンチシット (自動立ち上がり)", Default = false, Flag = "AntiSitEnabled", Callback = function(Value) if not IsLoadingConfig then AntiSitEnabled = Value end end })
+_G.O_AntiExplosionEnabled = DefenseTab:AddToggle({ Name = "アンチエクスプロージョン (ノックバック無効)", Default = false, Flag = "Flag_AntiExplosionEnabled", Callback = function(Value) if not IsLoadingConfig then AntiExplosionEnabled = Value end end })
+_G.O_AntiGrabEnabled = DefenseTab:AddToggle({ Name = "アンチグラブ (自動もがき)", Default = false, Flag = "Flag_AntiGrabEnabled", Callback = function(Value) if not IsLoadingConfig then AntiGrabEnabled = Value end end })
+_G.O_AntiSitEnabled = DefenseTab:AddToggle({ Name = "アンチシット (自動立ち上がり)", Default = false, Flag = "Flag_AntiSitEnabled", Callback = function(Value) if not IsLoadingConfig then AntiSitEnabled = Value end end })
 
 local SpawnToyRF = game:GetService("ReplicatedStorage"):WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
 local DeleteToyRE = game:GetService("ReplicatedStorage"):WaitForChild("MenuToys"):WaitForChild("DestroyToy")
@@ -324,7 +329,7 @@ BlobmanTab:AddButton({
 _G.O_BlobmanKickLoop = BlobmanTab:AddToggle({
     Name = "Blobman スパムキック",
     Default = false,
-    Flag = "BlobmanKickLoop",
+    Flag = "Flag_BlobmanKickLoop",
     Callback = function(Value)
         if IsLoadingConfig then return end
         BlobmanKickLoop = Value
@@ -490,7 +495,6 @@ SaveTab:AddButton({
             }
             
             for _, flag in ipairs(flagsToSave) do
-                -- 💡 ここを修正：頭に "Flag_" を付けた実際のFlag名でデータを取得する
                 local internalFlag = "Flag_" .. flag
                 if OrionLibrary.Flags[internalFlag] ~= nil then
                     configData[flag] = OrionLibrary.Flags[internalFlag]
