@@ -490,8 +490,10 @@ SaveTab:AddButton({
             }
             
             for _, flag in ipairs(flagsToSave) do
-                if OrionLibrary.Flags[flag] ~= nil then
-                    configData[flag] = OrionLibrary.Flags[flag]
+                -- 💡 ここを修正：頭に "Flag_" を付けた実際のFlag名でデータを取得する
+                local internalFlag = "Flag_" .. flag
+                if OrionLibrary.Flags[internalFlag] ~= nil then
+                    configData[flag] = OrionLibrary.Flags[internalFlag]
                 end
             end
 
