@@ -49,17 +49,17 @@ local TeleportTab = Window:MakeTab({ Name = "Teleport", Icon = "rbxassetid://773
 local DefenseTab = Window:MakeTab({ Name = "Defense", Icon = "rbxassetid://7734056608", PremiumOnly = false })
 local BlobmanTab = Window:MakeTab({ Name = "Blobman", Icon = "rbxassetid://13585613884", PremiumOnly = false })
 
-otherlanguage:AddButton({Name = "JP版起動", Callback = function()end})
-_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "Walkspeed Override", Default = false, Flag = "WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
-_G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
-_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "Jump Power Override", Default = false, Flag = "JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
-_G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })
-_G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Flag = "InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })
+otherlanguage:AddButton({Name = "JP版起動", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/adayoooooooo/Test-HUB/refs/heads/main/orion_ui_jp.lua"))() end})
+_G.O_WalkspeedOverride = PlayerTab:AddToggle({ Name = "Walkspeed Override", Default = false, Flag = "Flag_WalkspeedOverride", Callback = function(Value) if not IsLoadingConfig then _G.WalkspeedOverride = Value end end })
+_G.O_SpeedMultiplier = PlayerTab:AddSlider({ Name = "Speed Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Speed", Flag = "Flag_SpeedMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.SpeedMultiplier = Value end end })
+_G.O_JumpPowerOverride = PlayerTab:AddToggle({ Name = "Jump Power Override", Default = false, Flag = "Flag_JumpPowerOverride", Callback = function(Value) if not IsLoadingConfig then _G.JumpPowerOverride = Value end end })
+_G.O_JumpMultiplier = PlayerTab:AddSlider({ Name = "Jump Multiplier", Min = 1, Max = 10, Default = 1, Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "Jump", Flag = "Flag_JumpMultiplier", Callback = function(Value) if not IsLoadingConfig then _G.JumpMultiplier = Value end end })
+_G.O_InfiniteJump = PlayerTab:AddToggle({ Name = "Infinite Jump", Default = false, Flag = "Flag_InfiniteJump", Callback = function(Value) if not IsLoadingConfig then _G.InfiniteJump = Value end end })
 
 _G.O_VflyToggle = PlayerTab:AddToggle({
     Name = "Vfly (Vehicle Fly)",
     Default = false,
-    Flag = "VflyToggle",
+    Flag = "Flag_VflyToggle",
     Callback = function(Value)
         if IsLoadingConfig then return end
         FlyEnabled = Value
@@ -148,7 +148,7 @@ _G.O_FlySpeed = PlayerTab:AddSlider({
     Name = "Fly Speed",
     Min = 1, Max = 10, Default = 1,
     Color = Color3.fromRGB(255,255,255), Increment = 1, ValueName = "speed",
-    Flag = "FlySpeed",
+    Flag = "Flag_FlySpeed",
     Callback = function(Value) if not IsLoadingConfig then FlySpeed = Value end end
 })
 
@@ -187,7 +187,7 @@ Players.PlayerRemoving:Connect(RefreshDropdown)
 _G.O_TPSToggle = PlayerTab:AddToggle({ 
     Name = "Enable TPS (Max 500 Studs)", 
     Default = false, 
-    Flag = "TPSToggle",
+    Flag = "Flag_TPSToggle",
     Callback = function(Value) 
         if IsLoadingConfig then return end
         _G.TPSToggle = Value 
@@ -282,9 +282,9 @@ end
 if player.Character then task.spawn(reconnect, player.Character) end
 player.CharacterAdded:Connect(function(char) task.spawn(reconnect, char) end)
 
-_G.O_AntiExplosionEnabled = DefenseTab:AddToggle({ Name = "Anti Explosion (No Knockback)", Default = false, Flag = "AntiExplosionEnabled", Callback = function(Value) if not IsLoadingConfig then AntiExplosionEnabled = Value end end })
-_G.O_AntiGrabEnabled = DefenseTab:AddToggle({ Name = "Anti Grab (Auto Struggle)", Default = false, Flag = "AntiGrabEnabled", Callback = function(Value) if not IsLoadingConfig then AntiGrabEnabled = Value end end })
-_G.O_AntiSitEnabled = DefenseTab:AddToggle({ Name = "Anti Sit (Auto Unsit)", Default = false, Flag = "AntiSitEnabled", Callback = function(Value) if not IsLoadingConfig then AntiSitEnabled = Value end end })
+_G.O_AntiExplosionEnabled = DefenseTab:AddToggle({ Name = "Anti Explosion (No Knockback)", Default = false, Flag = "Flag_AntiExplosionEnabled", Callback = function(Value) if not IsLoadingConfig then AntiExplosionEnabled = Value end end })
+_G.O_AntiGrabEnabled = DefenseTab:AddToggle({ Name = "Anti Grab (Auto Struggle)", Default = false, Flag = "Flag_AntiGrabEnabled", Callback = function(Value) if not IsLoadingConfig then AntiGrabEnabled = Value end end })
+_G.O_AntiSitEnabled = DefenseTab:AddToggle({ Name = "Anti Sit (Auto Unsit)", Default = false, Flag = "Flag_AntiSitEnabled", Callback = function(Value) if not IsLoadingConfig then AntiSitEnabled = Value end end })
 
 local SpawnToyRF = game:GetService("ReplicatedStorage"):WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
 local DeleteToyRE = game:GetService("ReplicatedStorage"):WaitForChild("MenuToys"):WaitForChild("DestroyToy")
@@ -324,7 +324,7 @@ BlobmanTab:AddButton({
 _G.O_BlobmanKickLoop = BlobmanTab:AddToggle({
     Name = "Blobman Spam Kick",
     Default = false,
-    Flag = "BlobmanKickLoop",
+    Flag = "Flag_BlobmanKickLoop",
     Callback = function(Value)
         if IsLoadingConfig then return end
         BlobmanKickLoop = Value
@@ -490,8 +490,9 @@ SaveTab:AddButton({
             }
             
             for _, flag in ipairs(flagsToSave) do
-                if OrionLibrary.Flags[flag] ~= nil then
-                    configData[flag] = OrionLibrary.Flags[flag]
+                local internalFlag = "Flag_" .. flag
+                if OrionLibrary.Flags[internalFlag] ~= nil then
+                    configData[flag] = OrionLibrary.Flags[internalFlag]
                 end
             end
 
