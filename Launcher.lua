@@ -32,8 +32,8 @@ if game:GetService("CoreGui"):FindFirstChild("UI_Launcher") then
 end
 
 -- [[ 🔗 あなたのGitHubのRaw URL（修正済みでそのまま動きます） ]]
-local ORION_SCRIPT_URL = "https://raw.githubusercontent.com/adayoooooooo/KTM_HUB/refs/heads/main/orion_ui_en.lua"
-local RAYFIELD_SCRIPT_URL = "https://raw.githubusercontent.com/adayoooooooo/KTM_HUB/refs/heads/main/rayfield_ui.lua"
+local ORION_SCRIPT_URL = "https://raw.githubusercontent.com/adayoooooooo/Test-HUB/refs/heads/main/orion_ui_en.lua"
+local RAYFIELD_SCRIPT_URL = "https://raw.githubusercontent.com/adayoooooooo/Test-HUB/refs/heads/main/rayfield_ui.lua"
 
 -- [[ 🛑 共通グローバル変数宣言 ]]
 local player = game.Players.LocalPlayer
@@ -120,7 +120,7 @@ Title.Parent = MainFrame
 Title.BackgroundTransparency = 1.000
 Title.Size = UDim2.new(1, 0, 0, 40)
 Title.Font = Enum.Font.GothamBold
-Title.Text = "KTM HUB - Select UI Library"
+Title.Text = "(＃°Д°) HUB - Select UI Library"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 16.000
 
